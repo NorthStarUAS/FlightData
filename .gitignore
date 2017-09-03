@@ -1,2 +1,7 @@
 *~
 *.pyc
+build/
+dist/
+src/aura_flightdata.egg-info/
+
+
