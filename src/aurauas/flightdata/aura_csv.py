@@ -91,6 +91,7 @@ def load(flight_dir, recalibrate=None):
             result['imu'].append( imu )
 
     result['gps'] = []
+    last_time = -1.0
     with open(gps_file, 'rb') as fgps:
         reader = csv.DictReader(fgps)
         for row in reader:
@@ -124,7 +125,7 @@ def load(flight_dir, recalibrate=None):
             air.diff_press = 0.0    # not directly available in aura flight log
             air.temp = float(row['temp_C'])
             air.airspeed = float(row['airspeed_smoothed_kt'])
-            air.alt_press = float(row['altitude_smoothed_kt'])
+            air.alt_press = float(row['altitude_smoothed_m'])
             air.alt_true = float(row['altitude_true_m'])
             result['air'].append( air )
 
@@ -167,31 +168,31 @@ def load(flight_dir, recalibrate=None):
         with open(filter_post, 'rb') as ffilter:
             reader = csv.DictReader(ffilter)
             for row in reader:
-            lat = float(row['latitude_deg'])
-            lon = float(row['longitude_deg'])
-            if abs(lat) > 0.0001 and abs(lon) > 0.0001:
-                nav = NAVdata()
-                nav.time = float(row['timestamp'])
-                nav.lat = lat*d2r
-                nav.lon = lon*d2r
-                nav.alt = float(row['altitude_m'])
-                nav.vn = float(row['vn_ms'])
-                nav.ve = float(row['ve_ms'])
-                nav.vd = float(row['vd_ms'])
-                nav.phi = float(row['roll_deg'])*d2r
-                nav.the = float(row['pitch_deg'])*d2r
-                psi = float(row['heading_deg'])
-                if psi > 180.0:
-                    psi = psi - 360.0
-                if psi < -180.0:
-                    psi = psi + 360.0
-                nav.psi = psi*d2r
-                nav.p_bias = float(row['p_bias'])
-                nav.q_bias = float(row['q_bias'])
-                nav.r_bias = float(row['r_bias'])
-                nav.ax_bias = float(row['ax_bias'])
-                nav.ay_bias = float(row['ay_bias'])
-                nav.az_bias = float(row['az_bias'])
+                lat = float(row['latitude_deg'])
+                lon = float(row['longitude_deg'])
+                if abs(lat) > 0.0001 and abs(lon) > 0.0001:
+                    nav = NAVdata()
+                    nav.time = float(row['timestamp'])
+                    nav.lat = lat*d2r
+                    nav.lon = lon*d2r
+                    nav.alt = float(row['altitude_m'])
+                    nav.vn = float(row['vn_ms'])
+                    nav.ve = float(row['ve_ms'])
+                    nav.vd = float(row['vd_ms'])
+                    nav.phi = float(row['roll_deg'])*d2r
+                    nav.the = float(row['pitch_deg'])*d2r
+                    psi = float(row['heading_deg'])
+                    if psi > 180.0:
+                        psi = psi - 360.0
+                    if psi < -180.0:
+                        psi = psi + 360.0
+                    nav.psi = psi*d2r
+                    nav.p_bias = float(row['p_bias'])
+                    nav.q_bias = float(row['q_bias'])
+                    nav.r_bias = float(row['r_bias'])
+                    nav.ax_bias = float(row['ax_bias'])
+                    nav.ay_bias = float(row['ay_bias'])
+                    nav.az_bias = float(row['az_bias'])
                     result['filter_post'].append(nav)
 
     if os.path.exists(pilot_file):
@@ -236,10 +237,10 @@ def load(flight_dir, recalibrate=None):
                 ap = APdata()
                 ap.time = float(row['timestamp'])
                 ap.master_switch = int(row['master_switch'])
-                ap.pilot_pass_through = int(row['pilot_passthrough'])
+                ap.pilot_pass_through = int(row['pilot_pass_through'])
                 ap.hdg = float(row['groundtrack_deg'])
                 ap.roll = float(row['roll_deg'])
-                ap.alt = float(row['altitude_msl'])
+                ap.alt = float(row['altitude_msl_ft'])
                 ap.pitch = float(row['pitch_deg'])
                 ap.speed = float(row['airspeed_kt'])
                 ap.ground = float(row['altitude_ground_m'])
@@ -286,7 +287,7 @@ def save_filter_result(filename, data_store):
             row['vd_ms'] = '%.4f' % data_store.vd[i]
             row['roll_deg'] = '%.2f' % data_store.phi[i]*180.0/math.pi
             row['pitch_deg'] = '%.2f' % data_store.the[i]*180.0/math.pi
-            row['heading_deg'] = '%.2f' % data_store.psi[i]*180.0/math.pi)
+            row['heading_deg'] = '%.2f' % data_store.psi[i]*180.0/math.pi
             row['p_bias'] = '%.4f' % data_store.p_bias
             row['q_bias'] = '%.4f' % data_store.q_bias
             row['r_bias'] = '%.4f' % data_store.r_bias
