@@ -24,4 +24,6 @@ top of the flight data loader include:
   onboard native EKF.
 * Generating HUD overlays on action cam flight footage.
 * Various automatic magnetometer and IMU temp calibration tools.
-* Mapping, stitching, and geotagging tools. 
+* Mapping, stitching, and geotagging tools.
+* Synthetic airspeed estimator.
+* Wind estimator.
