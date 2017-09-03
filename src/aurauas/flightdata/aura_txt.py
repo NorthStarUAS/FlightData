@@ -1,4 +1,4 @@
-# load aura data format
+# load aura txt data format
 
 import fileinput
 import numpy as np
@@ -229,17 +229,13 @@ def load(flight_dir, recalibrate=None):
             tokens = re.split('[,\s]+', line.rstrip())
             ap = APdata()
             ap.time = float(tokens[0])
-            ap.hdg = float(tokens[1])
-            ap.roll = float(tokens[2])
-            ap.alt = float(tokens[3])
-            ap.pitch = float(tokens[5])
-            ap.speed = float(tokens[7])
-            #ap.flight_time = float(tokens[8])
-            #ap.target_wp = int(tokens[9])
-            #ap.wp_lon = float(tokens[10])
-            #ap.wp_lat = float(tokens[11])
-            #ap.wp_index = int(tokens[12])
-            #ap.route_size = int(tokens[13])
+            ap.master_switch = int(tokens[1])
+            ap.pilot_pass_through = int(tokens[2])
+            ap.hdg = float(tokens[3])
+            ap.roll = float(tokens[4])
+            ap.alt = float(tokens[5])
+            ap.pitch = float(tokens[7])
+            ap.speed = float(tokens[9])
             result['ap'].append(ap)
 
     cal = imucal.Calibration()
