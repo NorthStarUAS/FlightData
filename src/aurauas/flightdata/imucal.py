@@ -211,11 +211,10 @@ class Calibration():
     
     # back correct the IMU data given the current bias and scale errors
     # (i.e. assuming corrected data, generate the raw values)
-    def back_correct(self, imu_data):
+    def back_correct(self, imu_data, filter_data):
         if not self.valid:
-            return imu_data
+            return
         
-        imu_corrected = []
         p_bias_func = np.poly1d(self.p_bias)
         q_bias_func = np.poly1d(self.q_bias)
         r_bias_func = np.poly1d(self.r_bias)
@@ -228,22 +227,19 @@ class Calibration():
         ax_scale_func = np.poly1d(self.ax_scale)
         ay_scale_func = np.poly1d(self.ay_scale)
         az_scale_func = np.poly1d(self.az_scale)
+
         for imu in imu_data:
-            newimu = nav.structs.IMUdata()
-            newimu.time = imu.time
             temp = imu.temp
-            newimu.temp = temp
-            #newimu.status = imu.status
             if temp < self.min_temp:
                 temp = self.min_temp
             if temp > self.max_temp:
                 temp = self.max_temp    
-            newimu.p = imu.p / p_scale_func(temp) + p_bias_func(temp)
-            newimu.q = imu.q / q_scale_func(temp) + q_bias_func(temp)
-            newimu.r = imu.r / r_scale_func(temp) + r_bias_func(temp)
-            newimu.ax = imu.ax / ax_scale_func(temp) + ax_bias_func(temp)
-            newimu.ay = imu.ay / ay_scale_func(temp) + ay_bias_func(temp)
-            newimu.az = imu.az / az_scale_func(temp) + az_bias_func(temp)
+            imu.p = imu.p / p_scale_func(temp) + p_bias_func(temp)
+            imu.q = imu.q / q_scale_func(temp) + q_bias_func(temp)
+            imu.r = imu.r / r_scale_func(temp) + r_bias_func(temp)
+            imu.ax = imu.ax / ax_scale_func(temp) + ax_bias_func(temp)
+            imu.ay = imu.ay / ay_scale_func(temp) + ay_bias_func(temp)
+            imu.az = imu.az / az_scale_func(temp) + az_bias_func(temp)
             # note: corrected mags are currently being logged so don't
             # back correct mags here...
             back_correct_mags = False
@@ -252,13 +248,20 @@ class Calibration():
                 hf = np.dot(self.mag_affine_inv, hs)
                 norm = np.linalg.norm(hf[:3])
                 # #hf[:3] /= norm
-                newimu.hx = hf[0]
-                newimu.hy = hf[1]
-                newimu.hz = hf[2]
+                imu.hx = hf[0]
+                imu.hy = hf[1]
+                imu.hz = hf[2]
             else:
-                newimu.hx = imu.hx
-                newimu.hy = imu.hy
-                newimu.hz = imu.hz
-            #print 'orig:', newimu.az, 'cooked:', imu.az
-            imu_corrected.append(newimu)
-        return imu_corrected
+                imu.hx = imu.hx
+                imu.hy = imu.hy
+                imu.hz = imu.hz
+            
+        for filt in filter_data:
+            # onboard ekf and biases are computed with calibrated sensor
+            # data so also back-correct the biases.
+            filt.p_bias = filt.p_bias / p_scale_func(temp) + p_bias_func(temp)
+            filt.q_bias = filt.q_bias / q_scale_func(temp) + q_bias_func(temp)
+            filt.r_bias = filt.r_bias / r_scale_func(temp) + r_bias_func(temp)
+            filt.ax_bias = filt.ax_bias / ax_scale_func(temp) + ax_bias_func(temp)
+            filt.ay_bias = filt.ay_bias / ay_scale_func(temp) + ay_bias_func(temp)
+            filt.az_bias = filt.az_bias / az_scale_func(temp) + az_bias_func(temp)

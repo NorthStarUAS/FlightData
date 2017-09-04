@@ -248,13 +248,9 @@ def load(flight_dir, recalibrate=None):
 
     cal = imucal.Calibration()
     if os.path.exists(imucal_json):
-        imucal_file = imucal_json
-    else:
-        imucal_file = None
-    if imucal_file:
-        cal.load(imucal_file)
+        cal.load(imucal_json)
         print 'back correcting imu data (to get original raw values)'
-        result['imu'] = cal.back_correct(result['imu'])
+        cal.back_correct(result['imu'], result['filter'])
 
     if recalibrate:
         print 'recalibrating imu data using alternate calibration file:', recalibrate
