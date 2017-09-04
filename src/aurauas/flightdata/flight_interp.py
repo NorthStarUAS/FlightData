@@ -17,6 +17,10 @@ class FlightInterpolate():
         self.imu_ax = None
         self.imu_ay = None
         self.imu_az = None
+        self.imu_hx = None
+        self.imu_hy = None
+        self.imu_hz = None
+        self.imu_temp = None
 
         self.gps_lat = None
         self.gps_lon = None
@@ -65,7 +69,8 @@ class FlightInterpolate():
                 table.append([imu.time,
                               imu.p, imu.q, imu.r,
                               imu.ax, imu.ay, imu.az,
-                              imu.hx, imu.hy, imu.hz])
+                              imu.hx, imu.hy, imu.hz,
+                              imu.temp])
             array = np.array(table)
             x = array[:,0]
             self.imu_time = x
@@ -91,6 +96,9 @@ class FlightInterpolate():
                                                bounds_error=False,
                                                fill_value=0.0)
             self.imu_hz = interpolate.interp1d(x, array[:,9],
+                                               bounds_error=False,
+                                               fill_value=0.0)
+            self.imu_temp = interpolate.interp1d(x, array[:,10],
                                                bounds_error=False,
                                                fill_value=0.0)
         if 'gps' in flight_data and len(flight_data['gps']):

@@ -20,16 +20,16 @@ def load(flight_dir, recalibrate=None):
     result = {}
 
     # load imu/gps data files
-    imu_file = flight_dir + "/imu-0.csv"
-    imucal_json = flight_dir + "/imucal.json"
-    gps_file = flight_dir + "/gps-0.csv"
-    air_file = flight_dir + "/air-0.csv"
-    filter_file = flight_dir + "/filter-0.csv"
-    filter_post = flight_dir + "/filter-post.csv"
-    pilot_file = flight_dir + "/pilot-0.csv"
-    act_file = flight_dir + "/act-0.csv"
-    ap_file = flight_dir + "/ap-0.csv"
-    imu_bias_file = flight_dir + "/imubias.csv"
+    imu_file = os.path.join(flight_dir, "imu-0.csv")
+    imucal_json = os.path.join(flight_dir, "imucal.json")
+    gps_file = os.path.join(flight_dir, "gps-0.csv")
+    air_file = os.path.join(flight_dir, "air-0.csv")
+    filter_file = os.path.join(flight_dir, "filter-0.csv")
+    filter_post = os.path.join(flight_dir, "filter-post.csv")
+    pilot_file = os.path.join(flight_dir, "pilot-0.csv")
+    act_file = os.path.join(flight_dir, "act-0.csv")
+    ap_file = os.path.join(flight_dir, "ap-0.csv")
+    imu_bias_file = os.path.join(flight_dir, "imubias.csv")
 
     # HEY: in the latest aura code, calibrated magnetometer is logged,
     # not raw magnetometer, so we don't need to correct here.  We
