@@ -241,8 +241,10 @@ class Calibration():
             imu.ay = imu.ay / ay_scale_func(temp) + ay_bias_func(temp)
             imu.az = imu.az / az_scale_func(temp) + az_bias_func(temp)
             # note: corrected mags are currently being logged so don't
-            # back correct mags here...
-            back_correct_mags = False
+            # back correct mags here... unless we are generating the
+            # calibration database files, then we do want to back correct
+            # the mags.
+            back_correct_mags = True
             if back_correct_mags:
                 hs = [imu.hx, imu.hy, imu.hz, 1.0]
                 hf = np.dot(self.mag_affine_inv, hs)
