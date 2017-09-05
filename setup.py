@@ -8,7 +8,6 @@ setup(name='aura-flightdata',
       author='Curtis L. Olson',
       author_email='curtolson@flightgear.org',
       url='https://github.com/AuraUAS',
-      #py_modules=['props', 'props_json', 'props_xml'],
       package_dir = {'': 'src'},
       packages = find_packages('src'),
      )
