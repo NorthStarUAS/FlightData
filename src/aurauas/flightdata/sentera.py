@@ -8,10 +8,11 @@ import re
 
 import navpy
 
-import nav.structs
-
 d2r = math.pi / 180.0
 g = 9.81
+
+# empty class we'll fill in with data members
+class Record: pass
 
 def isFloat(string):
     try:
@@ -142,7 +143,7 @@ def load(flight_dir):
                 #hy_new /= norm
                 #hz_new /= norm
                 
-                imu = nav.structs.IMUdata()
+                imu = Record()
                 imu.time = float(time)/1000000.0
                 imu.p = p
                 imu.q = q
@@ -190,7 +191,7 @@ def load(flight_dir):
                                   float(ecefvz)/100.0],
                                  llh[0], llh[1], llh[2])
             if int(numsvs) >= 4:
-                gps = nav.structs.GPSdata()
+                gps = Record()
                 gps.time = float(time)/1000000.0
                 #gps.status = int(status)
                 gps.unix_sec = float(time)/1000000.0 # make filter happy
@@ -214,7 +215,7 @@ def load(flight_dir):
             lat = float(tokens[1])
             lon = float(tokens[2])
             if abs(lat) > 0.0001 and abs(lon) > 0.0001:
-                filterpt = nav.structs.NAVdata()
+                filterpt = Record()
                 filterpt.time = float(tokens[0])
                 filterpt.lat = lat*d2r
                 filterpt.lon = lon*d2r

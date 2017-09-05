@@ -8,13 +8,10 @@ import re
 
 import imucal
 
-from nav.structs import IMUdata, GPSdata, Airdata, NAVdata
-
 d2r = math.pi / 180.0
 
 # empty classes we'll fill in with data members
-class Controldata: pass
-class APdata: pass
+class Record: pass
 
 def load(flight_dir, recalibrate=None):
     result = {}
@@ -80,7 +77,7 @@ def load(flight_dir, recalibrate=None):
         #s = [float(tokens[7]), float(tokens[8]), float(tokens[9]), 1.0]
         #hf = np.dot(mag_affine, s)
         #print hf
-        imu = IMUdata()
+        imu = Record()
         imu.time = float(tokens[0])
         imu.p = float(tokens[1])
         imu.q = float(tokens[2])
@@ -106,7 +103,7 @@ def load(flight_dir, recalibrate=None):
         time = float(tokens[0])
         sats = int(tokens[8])
         if sats >= 5 and time > last_time:
-            gps = GPSdata()
+            gps = Record()
             gps.time = time
             gps.unix_sec = float(tokens[7])
             gps.lat = float(tokens[1])
@@ -124,7 +121,7 @@ def load(flight_dir, recalibrate=None):
         fair = fileinput.input(air_file)
         for line in fair:
             tokens = re.split('[,\s]+', line.rstrip())
-            air = Airdata()
+            air = Record()
             air.time = float(tokens[0])
             air.static_press = float(tokens[1])
             air.diff_press = 0.0    # not directly available in flight log
@@ -142,7 +139,7 @@ def load(flight_dir, recalibrate=None):
         lat = float(tokens[1])
         lon = float(tokens[2])
         if abs(lat) > 0.0001 and abs(lon) > 0.0001:
-            nav = NAVdata()
+            nav = Record()
             nav.time = float(tokens[0])
             nav.lat = lat*d2r
             nav.lon = lon*d2r
@@ -170,7 +167,7 @@ def load(flight_dir, recalibrate=None):
             lat = float(tokens[1])
             lon = float(tokens[2])
             if abs(lat) > 0.0001 and abs(lon) > 0.0001:
-                nav = NAVdata()
+                nav = Record()
                 nav.time = float(tokens[0])
                 nav.lat = lat*d2r
                 nav.lon = lon*d2r
@@ -193,7 +190,7 @@ def load(flight_dir, recalibrate=None):
         fpilot = fileinput.input(pilot_file)
         for line in fpilot:
             tokens = re.split('[,\s]+', line.rstrip())
-            pilot = Controldata()
+            pilot = Record()
             pilot.time = float(tokens[0])
             pilot.aileron = float(tokens[1])
             pilot.elevator = float(tokens[2])
@@ -210,7 +207,7 @@ def load(flight_dir, recalibrate=None):
         fact = fileinput.input(act_file)
         for line in fact:
             tokens = re.split('[,\s]+', line.rstrip())
-            act = Controldata()
+            act = Record()
             act.time = float(tokens[0])
             act.aileron = float(tokens[1])
             act.elevator = float(tokens[2])
@@ -227,7 +224,7 @@ def load(flight_dir, recalibrate=None):
         fap = fileinput.input(ap_file)
         for line in fap:
             tokens = re.split('[,\s]+', line.rstrip())
-            ap = APdata()
+            ap = Record()
             ap.time = float(tokens[0])
             ap.master_switch = int(tokens[1])
             ap.pilot_pass_through = int(tokens[2])

@@ -10,12 +10,12 @@ join = os.path.join
 import numpy as np
 from scipy import io as sio
 
-from nav.structs import IMUdata, GPSdata, Airdata, NAVdata
-
 mps2kt = 1.94384
 
-class dict2struct():
-  pass
+class dict2struct(): pass
+
+# empty class we'll fill in with data members
+class Record(): pass
 
 def load(mat_filename):
     # Name of .mat file that exists in the directory defined above and
@@ -138,7 +138,7 @@ def load(mat_filename):
         #hf = np.dot(mag_affine, s)
         hf = s
 
-        imu_pt = IMUdata()
+        imu_pt = Record()
         imu_pt.time = float(t[k])
         imu_pt.p = float(p)
         imu_pt.q = float(q)
@@ -157,7 +157,7 @@ def load(mat_filename):
 
         if abs(alt[k] - last_gps_alt) > 0.0001:
             last_gps_alt = alt[k]
-            gps_pt = GPSdata()
+            gps_pt = Record()
             gps_pt.time = float(t[k])
             #gps_pt.status = int(status)
             gps_pt.unix_sec = float(t[k])
@@ -170,13 +170,14 @@ def load(mat_filename):
             gps_pt.sats = 8     # force a reasonable value (not logged?)
             result['gps'].append(gps_pt)
 
-        air_pt = Airdata()
+        air_pt = Record()
         air_pt.time = float(t[k])
         air_pt.airspeed = float(flight_data.ias[k]*mps2kt)
         air_pt.altitude = float(flight_data.h[k])
+        air_pt.alt_true = float(flight_data.navalt[k])
         result['air'].append(air_pt)
         
-        nav = NAVdata()
+        nav = Record()
         nav.time = float(t[k])
         nav.lat = float(flight_data.navlat[k])
         nav.lon = float(flight_data.navlon[k])
@@ -187,6 +188,12 @@ def load(mat_filename):
         nav.phi = float(flight_data.phi[k])
         nav.the = float(flight_data.theta[k])
         nav.psi = float(flight_data.psi[k])
+        nav.p_bias = float(flight_data.p_bias[k])
+        nav.q_bias = float(flight_data.q_bias[k])
+        nav.r_bias = float(flight_data.r_bias[k])
+        nav.ax_bias = float(flight_data.ax_bias[k])
+        nav.ay_bias = float(flight_data.ay_bias[k])
+        nav.az_bias = float(flight_data.az_bias[k])
         result['filter'].append(nav)
 
         k += 1

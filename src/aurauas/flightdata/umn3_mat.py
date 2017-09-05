@@ -10,13 +10,13 @@ join = os.path.join
 import numpy as np
 from scipy import io as sio
 
-from nav.structs import IMUdata, GPSdata, Airdata, NAVdata
-
 mps2kt = 1.94384
 r2d = 180.0 / math.pi
 
 class dict2struct(): pass
-class Controldata: pass
+
+# empty class we'll fill in with data members
+class Record(): pass
 
 def load(mat_filename):
     # Name of .mat file that exists in the directory defined above and
@@ -131,7 +131,7 @@ def load(mat_filename):
         # hf = np.dot(mag_affine, s) # apply mag calibration
         hf = s
 
-        imu_pt = IMUdata()
+        imu_pt = Record()
         imu_pt.time = data['Time_s'][i]
         imu_pt.p = -data['IMU_Gy_rads'][i]
         imu_pt.q = data['IMU_Gx_rads'][i]
@@ -151,7 +151,7 @@ def load(mat_filename):
         if abs(lat - last_gps_lat) > 0.0000000001 or abs(lon - last_gps_lon) > 0.0000000000001:
             last_gps_lat = lat
             last_gps_lon = lon
-            gps_pt = GPSdata()
+            gps_pt = Record()
             gps_pt.time = data['Time_s'][i]
             #gps_pt.status = something
             gps_pt.unix_sec = data['Time_s'][i] # hack an incrementing time here
@@ -176,7 +176,7 @@ def load(mat_filename):
         tmp1 = math.pow((P0/P), 1.0/5.257) - 1.0
         alt_m = (tmp1 * (T + 273.15)) / 0.0065
         
-        air_pt = Airdata()
+        air_pt = Record()
         air_pt.time = data['Time_s'][i]
         air_pt.airspeed = airspeed_mps * mps2kt
         air_pt.altitude = alt_m
@@ -195,7 +195,7 @@ def load(mat_filename):
         # nav.psi = float(flight_data.psi[k])
         # result['filter'].append(nav)
 
-        act = Controldata()
+        act = Record()
         act.time = data['Time_s'][i]
         act.aileron = data['SbusRx_Inceptor_Roll'][i]
         act.elevator = data['SbusRx_Inceptor_Pitch'][i]

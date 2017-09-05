@@ -8,11 +8,8 @@ import os
 from scipy import interpolate # strait up linear interpolation, nothing fancy
 import re
 
-from nav.structs import IMUdata, GPSdata, Airdata, NAVdata
-
-# empty classes we'll fill in with data members
-class Controldata: pass
-class APdata: pass
+# empty class we'll fill in with data members
+class Record: pass
 
 d2r = math.pi / 180.0
 r2d = 180.0 / math.pi
@@ -76,7 +73,7 @@ def load(csv_base):
     with open(comb_path, 'rb') as f:
         reader = csv.DictReader(f)
         for row in reader:
-            imu = IMUdata()
+            imu = Record()
             imu.time = float(row['timestamp']) / 1000000.0
             imu.p = float(row['gyro_rad[0]'])
             imu.q = float(row['gyro_rad[1]'])
@@ -101,7 +98,7 @@ def load(csv_base):
     with open(gps_path, 'rb') as f:
         reader = csv.DictReader(f)
         for row in reader:
-            gps = GPSdata()
+            gps = Record()
             gps.time = float(row['timestamp']) / 1000000.0
             gps.unix_sec = float(row['time_utc_usec']) / 1000000.0
             gps.lat = float(row['lat']) / 1e7
@@ -119,7 +116,7 @@ def load(csv_base):
     with open(air_path, 'rb') as f:
         reader = csv.DictReader(f)
         for row in reader:
-            air = Airdata()
+            air = Record()
             air.time = float(row['timestamp']) / 1000000.0
             #air.static_press = float(row['SENS_BaroPres'])
             air.diff_press = float(row['differential_pressure_filtered_pa'])
@@ -177,7 +174,7 @@ def load(csv_base):
         with open(ap_path, 'rb') as f:
             reader = csv.DictReader(f)
             for row in reader:
-                ap = APdata()
+                ap = Record()
                 ap.time = float(row['timestamp']) / 1000000.0
                 ap.hdg = float(row['yaw_body']) * r2d
                 ap.roll = float(row['roll_body']) * r2d
@@ -190,7 +187,7 @@ def load(csv_base):
  
     result['filter'] = []
     for a in att:
-        nav = NAVdata()
+        nav = Record()
         nav.time = a[0]
         nav.lat = float(lat_interp(nav.time))
         nav.lon = float(lon_interp(nav.time))
@@ -218,7 +215,7 @@ def load(csv_base):
             lat = float(tokens[1])
             lon = float(tokens[2])
             if abs(lat) > 0.0001 and abs(lon) > 0.0001:
-                nav = NAVdata()
+                nav = Record()
                 nav.time = float(tokens[0])
                 nav.lat = lat*d2r
                 nav.lon = lon*d2r
@@ -240,7 +237,7 @@ def load(csv_base):
         with open(act_path, 'rb') as f:
             reader = csv.DictReader(f)
             for row in reader:
-                act = Controldata()
+                act = Record()
                 act.time = float(row['timestamp']) / 1000000.0
                 ch = [0] * 8
                 for i in range(len(ch)):

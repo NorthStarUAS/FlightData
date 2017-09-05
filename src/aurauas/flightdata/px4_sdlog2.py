@@ -5,11 +5,8 @@ import math
 import numpy as np
 import re
 
-from nav.structs import IMUdata, GPSdata, Airdata, NAVdata
-
-# empty classes we'll fill in with data members
-class Controldata: pass
-class APdata: pass
+# empty class we'll fill in with data members
+class Record: pass
 
 d2r = math.pi / 180.0
 r2d = 180.0/ math.pi
@@ -41,7 +38,7 @@ def load(csv_file):
                 # empty time
                 continue
 
-            imu = IMUdata()
+            imu = Record()
             imu.time = float(row['TIME_StartTime']) / 1000000.0
             imu.p = float(row['IMU_GyroX'])
             imu.q = float(row['IMU_GyroY'])
@@ -63,7 +60,7 @@ def load(csv_file):
             result['imu'].append( imu )
 
             if row['GPS_GPSTime'] != '':
-                gps = GPSdata()
+                gps = Record()
                 gps.time = imu.time
                 gps.unix_sec = float(row['GPS_GPSTime']) / 1000000.0
                 gps.lat = float(row['GPS_Lat'])
@@ -78,7 +75,7 @@ def load(csv_file):
                 last_gps_time = gps.unix_sec
 
             if row['SENS_BaroPres'] != '':
-                air = Airdata()
+                air = Record()
                 air.time = imu.time
                 air.static_press = float(row['SENS_BaroPres'])
                 if 'AIR1_DiffPres' in row and row['AIR1_DiffPres'] != '':
@@ -104,7 +101,7 @@ def load(csv_file):
                 result['air'].append( air )
 
             if row['GPOS_Lat'] != '':
-                nav = NAVdata()
+                nav = Record()
                 nav.time = imu.time
                 nav.lat = float(row['GPOS_Lat'])*d2r
                 nav.lon = float(row['GPOS_Lon'])*d2r
@@ -123,7 +120,7 @@ def load(csv_file):
                 result['filter'].append(nav)
 
             if row['GPSP_Alt'] != '':
-                ap = APdata()
+                ap = Record()
                 ap.time = imu.time
                 ap.hdg = my_float(row['ATSP_YawSP']) * r2d
                 ap.roll = my_float(row['ATSP_RollSP']) * r2d
@@ -133,7 +130,7 @@ def load(csv_file):
                 result['ap'].append(ap)
                 
             if row['OUT0_Out0'] != '':
-                act = Controldata()
+                act = Record()
                 ch0 = (float(row['OUT0_Out0']) - 1500) / 500
                 ch1 = (float(row['OUT0_Out1']) - 1500) / 500 
                 ch2 = (float(row['OUT0_Out2']) - 1000) / 1000

@@ -7,8 +7,6 @@ from props import PropertyNode, root, getNode
 import props_json
 import props_xml
 
-import nav.structs
-
 class Calibration():
     def __init__(self):
         self.valid = False
@@ -184,30 +182,24 @@ class Calibration():
         ay_scale_func = np.poly1d(self.ay_scale)
         az_scale_func = np.poly1d(self.az_scale)
         for imu in imu_data:
-            newimu = nav.structs.IMUdata()
-            newimu.time = imu.time
             temp = imu.temp
-            newimu.temp = temp
-            #newimu.status = imu.status
             if temp < self.min_temp:
                 temp = self.min_temp
             if temp > self.max_temp:
                 temp = self.max_temp    
-            newimu.p = (imu.p - p_bias_func(temp)) * p_scale_func(temp)
-            newimu.q = (imu.q - q_bias_func(temp)) * q_scale_func(temp)
-            newimu.r = (imu.r - r_bias_func(temp)) * r_scale_func(temp)
-            newimu.ax = (imu.ax - ax_bias_func(temp)) * ax_scale_func(temp)
-            newimu.ay = (imu.ay - ay_bias_func(temp)) * ay_scale_func(temp)
-            newimu.az = (imu.az - az_bias_func(temp)) * az_scale_func(temp)
+            imu.p = (imu.p - p_bias_func(temp)) * p_scale_func(temp)
+            imu.q = (imu.q - q_bias_func(temp)) * q_scale_func(temp)
+            imu.r = (imu.r - r_bias_func(temp)) * r_scale_func(temp)
+            imu.ax = (imu.ax - ax_bias_func(temp)) * ax_scale_func(temp)
+            imu.ay = (imu.ay - ay_bias_func(temp)) * ay_scale_func(temp)
+            imu.az = (imu.az - az_bias_func(temp)) * az_scale_func(temp)
             hs = [imu.hx, imu.hy, imu.hz, 1.0]
             hf = np.dot(self.mag_affine, hs)
             norm = np.linalg.norm(hf[:3])
             #hf[:3] /= norm
-            newimu.hx = hf[0]
-            newimu.hy = hf[1]
-            newimu.hz = hf[2]
-            imu_corrected.append(newimu)
-        return imu_corrected
+            imu.hx = hf[0]
+            imu.hy = hf[1]
+            imu.hz = hf[2]
     
     # back correct the IMU data given the current bias and scale errors
     # (i.e. assuming corrected data, generate the raw values)

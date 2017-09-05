@@ -8,13 +8,10 @@ import re
 
 import imucal
 
-from nav.structs import IMUdata, GPSdata, Airdata, NAVdata
-
 d2r = math.pi / 180.0
 
-# empty classes we'll fill in with data members
-class Controldata: pass
-class APdata: pass
+# empty class we'll fill in with data members
+class Record: pass
 
 def load(flight_dir, recalibrate=None):
     result = {}
@@ -76,7 +73,7 @@ def load(flight_dir, recalibrate=None):
     with open(imu_file, 'rb') as fimu:
         reader = csv.DictReader(fimu)
         for row in reader:
-            imu = IMUdata()
+            imu = Record()
             imu.time = float(row['timestamp'])
             imu.p = float(row['p_rad_sec'])
             imu.q = float(row['q_rad_sec'])
@@ -102,7 +99,7 @@ def load(flight_dir, recalibrate=None):
             time = float(row['timestamp'])
             sats = int(row['satellites'])
             if sats >= 5 and time > last_time:
-                gps = GPSdata()
+                gps = Record()
                 gps.time = time
                 gps.unix_sec = float(row['unix_time_sec'])
                 gps.lat = float(row['latitude_deg'])
@@ -119,7 +116,7 @@ def load(flight_dir, recalibrate=None):
     with open(air_file, 'rb') as fair:
         reader = csv.DictReader(fair)
         for row in reader:
-            air = Airdata()
+            air = Record()
             air.time = float(row['timestamp'])
             air.static_press = float(row['pressure_mbar'])
             air.diff_press = 0.0    # not directly available in aura flight log
@@ -137,7 +134,7 @@ def load(flight_dir, recalibrate=None):
             lat = float(row['latitude_deg'])
             lon = float(row['longitude_deg'])
             if abs(lat) > 0.0001 and abs(lon) > 0.0001:
-                nav = NAVdata()
+                nav = Record()
                 nav.time = float(row['timestamp'])
                 nav.lat = lat*d2r
                 nav.lon = lon*d2r
@@ -171,7 +168,7 @@ def load(flight_dir, recalibrate=None):
                 lat = float(row['latitude_deg'])
                 lon = float(row['longitude_deg'])
                 if abs(lat) > 0.0001 and abs(lon) > 0.0001:
-                    nav = NAVdata()
+                    nav = Record()
                     nav.time = float(row['timestamp'])
                     nav.lat = lat*d2r
                     nav.lon = lon*d2r
@@ -200,7 +197,7 @@ def load(flight_dir, recalibrate=None):
         with open(pilot_file, 'rb') as fpilot:
             reader = csv.DictReader(fpilot)
             for row in reader:
-                pilot = Controldata()
+                pilot = Record()
                 pilot.time = float(row['timestamp'])
                 pilot.aileron = float(row['channel[0]'])
                 pilot.elevator = float(row['channel[1]'])
@@ -217,7 +214,7 @@ def load(flight_dir, recalibrate=None):
         with open(act_file, 'rb') as fact:
             reader = csv.DictReader(fact)
             for row in reader:
-                act = Controldata()
+                act = Record()
                 act.time = float(row['timestamp'])
                 act.aileron = float(row['aileron_norm'])
                 act.elevator = float(row['elevator_norm'])
@@ -234,7 +231,7 @@ def load(flight_dir, recalibrate=None):
         with open(ap_file, 'rb') as fap:
             reader = csv.DictReader(fap)
             for row in reader:
-                ap = APdata()
+                ap = Record()
                 ap.time = float(row['timestamp'])
                 ap.master_switch = int(row['master_switch'])
                 ap.pilot_pass_through = int(row['pilot_pass_through'])
