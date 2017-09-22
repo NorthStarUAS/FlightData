@@ -32,12 +32,17 @@ def load(path, recal_file=None):
         flight_data = aura_txt.load(path, recal_file)
         flight_format = 'aura_txt'
     elif ext == '.mat':
-        # umn1, umn3
-        print 'Detected umn1/umn3 format.'
+        # umn1
+        print 'Detected umn1 format.'
         print 'Notice: assuming umn1 .mat format'
         flight_data = umn1_mat.load(path)
         #flight_data = umn3_mat.load(path)
         flight_format = 'umn1'
+    elif ext == '.h5' or ext == '.hdf5':
+        # umn3 (hdf5)
+        print 'Detected umn3 (hdf5) format.'
+        flight_data = umn3_mat.load(path)
+        flight_format = 'umn3'
     elif os.path.exists(ulog_path):
         # px4_ulog
         print 'Detected px4 ulog (csv family of files) format.'
