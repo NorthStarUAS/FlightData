@@ -173,8 +173,14 @@ class FlightInterpolate():
                                                     fill_value=0.0)
         if 'air' in flight_data:
             table = []
+            has_alphabeta = False
             for air in flight_data['air']:
-                table.append([air.time, air.airspeed, air.alt_true])
+                record = [air.time, air.airspeed, air.alt_true]
+                if hasattr(air, 'alpha_deg') and hasattr(air, 'beta_deg'):
+                    record.append( air.alpha_deg )
+                    record.append( air.beta_deg )
+                    has_alphabeta = True
+                table.append(record)
             array = np.array(table)
             x = array[:,0]
             self.air_speed = interpolate.interp1d(x, array[:,1],
@@ -183,9 +189,14 @@ class FlightInterpolate():
             self.air_true_alt = interpolate.interp1d(x, array[:,2],
                                                      bounds_error=False,
                                                      fill_value=0.0)
-            #if len(flight_air[0]) >= 13:
-            #    flight_air_alpha = interpolate.interp1d(x, flight_air[:,11], bounds_error=False, fill_value=0.0)
-            #    flight_air_beta = interpolate.interp1d(x, flight_air[:,12], bounds_error=False, fill_value=0.0)
+            if has_alphabeta:
+                print "air data has alpha/beta data"
+                self.air_alpha = interpolate.interp1d(x, array[:,3],
+                                                      bounds_error=False,
+                                                      fill_value=0.0)
+                self.air_beta = interpolate.interp1d(x, array[:,4],
+                                                     bounds_error=False,
+                                                     fill_value=0.0)
         if 'pilot' in flight_data:
             table = []
             for pilot in flight_data['pilot']:

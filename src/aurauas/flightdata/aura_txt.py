@@ -129,6 +129,9 @@ def load(flight_dir, recalibrate=None):
             air.airspeed = float(tokens[3])
             air.alt_press = float(tokens[4])
             air.alt_true = float(tokens[5])
+            if len(tokens) == 13:
+                air.alpha_deg = float(tokens[11])
+                air.beta_deg = float(tokens[12])
             result['air'].append( air )
 
     # load filter records if they exist (for comparison purposes)
@@ -155,6 +158,12 @@ def load(flight_dir, recalibrate=None):
             if psi < -180.0:
                 psi = psi + 360.0
             nav.psi = psi*d2r
+            nav.p_bias = 0.0
+            nav.q_bias = 0.0
+            nav.r_bias = 0.0
+            nav.ax_bias = 0.0
+            nav.ay_bias = 0.0
+            nav.az_bias = 0.0
             result['filter'].append(nav)
 
     # load filter (post process) records if they exist (for comparison

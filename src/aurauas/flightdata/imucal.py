@@ -249,7 +249,7 @@ class Calibration():
                 imu.hx = imu.hx
                 imu.hy = imu.hy
                 imu.hz = imu.hz
-            
+        
         for filt in filter_data:
             # onboard ekf and biases are computed with calibrated sensor
             # data so also back-correct the biases.
