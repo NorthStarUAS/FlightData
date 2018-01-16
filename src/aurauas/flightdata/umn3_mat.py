@@ -33,7 +33,8 @@ def load(h5_filename):
     result['gps'] = []
     result['air'] = []
     result['filter'] = []
-    result['act'] = []
+    #result['act'] = []
+    result['pilot'] = []
     
     last_gps_lon = -9999.0
     last_gps_lat = -9999.0
@@ -90,22 +91,30 @@ def load(h5_filename):
         air_pt.time = timestamp[i][0]
         air_pt.airspeed = airspeed[i][0]
         air_pt.altitude = altitude[i][0]
+        air_pt.alt_true = altitude[i][0]
         result['air'].append(air_pt)
         
-    # nav = NAVdata()
-    # nav.time = float(t[k])
-    # nav.lat = float(flight_data.navlat[k])
-    # nav.lon = float(flight_data.navlon[k])
-    # nav.alt = float(flight_data.navalt[k])
-    # nav.vn = float(flight_data.navvn[k])
-    # nav.ve = float(flight_data.navve[k])
-    # nav.vd = float(flight_data.navvd[k])
-    # nav.phi = float(flight_data.phi[k])
-    # nav.the = float(flight_data.theta[k])
-    # nav.psi = float(flight_data.psi[k])
-    # result['filter'].append(nav)
+    lla = data['NavFilter']['LLA'][()]
+    vel = data['NavFilter']['NEDVelocity_ms'][()]
+    euler = data['NavFilter']['Euler_rad'][()]
+    for i in range( size ):
+        nav = Record()
+        nav.time = timestamp[i][0]
+        nav.lat = lla[i][0]
+        nav.lon = lla[i][1]
+        nav.alt = lla[i][2]
+        nav.vn = vel[i][0]
+        nav.ve = vel[i][1]
+        nav.vd = vel[i][2]
+        nav.phi = euler[i][0]
+        nav.the = euler[i][1]
+        nav.psi = euler[i][2]
+        if abs(nav.lat) > 0.0001 and abs(nav.lon) > 0.0001:
+            result['filter'].append(nav)
 
     inceptors = data['SbusRx_0']['Inceptors'][()]
+    auto = data['SbusRx_0']['AutoEnabled'][()]
+    aux = data['SbusRx_0']['AuxInputs'][()]
     for i in range( size ):
         act = Record()
         act.time = timestamp[i][0]
@@ -113,7 +122,11 @@ def load(h5_filename):
         act.elevator = inceptors[i][1]
         act.throttle = inceptors[i][4]
         act.rudder = inceptors[i][2]
-        result['act'].append(act)
+        act.flaps = inceptors[i][3]
+        act.gear = 0.0
+        act.aux1 = 0.0
+        act.auto_manual = aux[i][0]
+        result['pilot'].append(act)
         
     dir = os.path.dirname(h5_filename)
     print 'dir:', dir
