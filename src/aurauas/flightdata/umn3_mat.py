@@ -4,110 +4,29 @@
 
 FLAG_UNBIASED_IMU = False             # Choose if accel/gyro should be bias-free.
 
+import h5py
 import math
 import os, sys
 join = os.path.join
 import numpy as np
-from scipy import io as sio
 
 mps2kt = 1.94384
 r2d = 180.0 / math.pi
 
-class dict2struct(): pass
-
 # empty class we'll fill in with data members
 class Record(): pass
 
-def load(mat_filename):
+def load(h5_filename):
     # Name of .mat file that exists in the directory defined above and
     # has the flight_data and flight_info structures
-    filepath = mat_filename
+    filepath = h5_filename
 
     # Load Flight Data: ## IMPORTANT to have the .mat file in the
     # flight_data and flight_info structures for this function ##
-    data = sio.loadmat(filepath, struct_as_record=False, squeeze_me=True)
-    for keys in data:
-        print keys
+    data = h5py.File(filepath)
+    #for keys in data:
+    #    print keys
         
-    # print 'Loaded Data Summary'
-    # print '* File: %s' % filepath.split(os.path.sep)[-1]
-
-    # # Fill in time data
-    # t = flight_data.time
-    # print 't:', t
-
-    # # Magnetometer data - not used hence don't trust
-    # hm  = np.vstack((flight_data.hx, -flight_data.hy, -flight_data.hz)).T
-
-    # # Geri mag calibration
-    # mag_affine = np.array(
-    #     [[ 4.3374191736,  0.9527668819,  0.2106929615,  0.0649324241],
-    #      [-3.7617930866,  6.2839014058, -3.5707398622,  2.1616165305],
-    #      [-0.8688354599,  0.2205650877,  4.7466115481, -2.7041600008],
-    #      [ 0.          ,  0.          ,  0.          ,  1.          ]]
-    # )
-
-    # # Populate IMU Data
-    # imu = np.vstack((t, flight_data.p, flight_data.q, flight_data.r, 
-    #                  flight_data.ax, flight_data.ay, flight_data.az,
-    #                  hm[:,0], hm[:,1], hm[:,2])).T
-
-    # # Note that accelerometer and gyro measurements logged by UAV
-    # # after 11/17/2011 flight (seemingly, see 
-    # # http://trac.umnaem.webfactional.com/wiki/FlightReports/2011_11_17)
-    # # have the nav-estimated bias removed before datalogging. So to work with raw
-    # # imu-data, we add back the on-board estimated biases.
-    # if not FLAG_UNBIASED_IMU:
-    #     try:
-    #         imu[:, 1:4] += np.vstack((flight_data.p_bias, 
-    #                                   flight_data.q_bias, 
-    #                                   flight_data.r_bias)).T
-
-    #         imu[:, 4:7] += np.vstack((flight_data.ax_bias,
-    #                                   flight_data.ay_bias,
-    #                                   flight_data.az_bias)).T
-    #     except AttributeError:
-    #         print('Note: On board estimated bias not found.')
-
-    # # Air Data
-    # ias = flight_data.ias # indicated airspeed (m/s)
-    # h = flight_data.h
-
-    # # Populate GPS sensor data
-    # try:
-    #     vn = flight_data.gps_vn
-    # except:
-    #     vn = flight_data.vn
-    # try:
-    #     ve = flight_data.gps_ve
-    # except:
-    #     ve = flight_data.ve
-    # try:
-    #     vd = flight_data.gps_vd
-    # except:
-    #     vd = flight_data.vd
-    # lat = flight_data.lat
-    # lon = flight_data.lon
-    # alt = flight_data.alt
-
-    # # kstart set to when the navigation filter used onboard the aircraft
-    # # was initialized and this is accomplished by detecting when navlat is
-    # # no longer 0.0. This choice of kstart will ensure the filter being
-    # # tested is using the same initialization time step as the onboard
-    # # filter allowing for apples to apples comparisons.
-    # kstart = (abs(flight_data.navlat) > 0.0).tolist().index(True)
-    # k = kstart
-    # print('Initialized at Time: %.2f s (k=%i)' % (t[k], k))
-
-    # # Set previous value of GPS altitude to 0.0. This will be used to
-    # # trigger GPS newData flag which is commonly used in our
-    # # navigation filters for deciding if the GPS data has been
-    # # updated. However, in python we have no log of newData
-    # # (typically). So a comparison of current GPS altitude to the
-    # # previous epoch's GPS altitude is used to determine if GPS has
-    # # been updated.
-    # last_gps_alt = -9999.9
-
     # create data structures for ekf processing
     result = {}
     result['imu'] = []
@@ -119,91 +38,84 @@ def load(mat_filename):
     last_gps_lon = -9999.0
     last_gps_lat = -9999.0
     
-    for i in range( len(data['Time_s']) ):
-        # p, q, r = imu[k, 1:4]
-        # ax, ay, az = imu[k, 4:7]
-        # hx, hy, hz = imu[k, 7:10]
-        
-        s = [ -data['IMU_Hy_uT'][i],
-              data['IMU_Hx_uT'][i],
-              data['IMU_Hz_uT'][i],
-              1.0 ]
-        # hf = np.dot(mag_affine, s) # apply mag calibration
-        hf = s
+    size = len(data['Fmu']['Time_us'])
 
+    timestamp = data['Fmu']['Time_us'][()].astype(float) * 1e-6
+
+    gyro = data['Mpu9250']['Gyro_rads'][()].astype(float)
+    accel = data['Mpu9250']['Accel_mss'][()].astype(float)
+    mag = data['Mpu9250']['Mag_uT'][()].astype(float)
+    temp = data['Mpu9250']['Temp_C'][()].astype(float)
+    for i in range( size ):
         imu_pt = Record()
-        imu_pt.time = data['Time_s'][i]
-        imu_pt.p = -data['IMU_Gy_rads'][i]
-        imu_pt.q = data['IMU_Gx_rads'][i]
-        imu_pt.r = data['IMU_Gz_rads'][i]
-        imu_pt.ax = -data['IMU_Ay_mss'][i]
-        imu_pt.ay = data['IMU_Ax_mss'][i]
-        imu_pt.az = data['IMU_Az_mss'][i]
-        imu_pt.hx = float(hf[0])
-        imu_pt.hy = float(hf[1])
-        imu_pt.hz = float(hf[2])
-        imu_pt.temp = data['IMU_Temp_C'][i]
+        imu_pt.time = timestamp[i][0]
+        imu_pt.p = gyro[i][0]
+        imu_pt.q = gyro[i][1]
+        imu_pt.r = gyro[i][2]
+        imu_pt.ax = accel[i][0]
+        imu_pt.ay = accel[i][1]
+        imu_pt.az = accel[i][2]
+        imu_pt.hx = mag[i][0]
+        imu_pt.hy = mag[i][1]
+        imu_pt.hz = mag[i][2]
+        imu_pt.temp = temp[i][0]
         result['imu'].append(imu_pt)
 
-        lat = data['GPS_Latitude'][i] * r2d
-        lon = data['GPS_Longitude'][i] * r2d
-        #print lon,lat
+    lla = data['Gps_0']['LLA'][()]
+    vel = data['Gps_0']['NEDVelocity_ms'][()]
+    sats = data['Gps_0']['NumberSatellites'][()]
+    for i in range( size ):
+        lat = lla[i][0] * r2d
+        lon = lla[i][1] * r2d
+        #print lon,lat,alt
         if abs(lat - last_gps_lat) > 0.0000000001 or abs(lon - last_gps_lon) > 0.0000000000001:
             last_gps_lat = lat
             last_gps_lon = lon
             gps_pt = Record()
-            gps_pt.time = data['Time_s'][i]
-            #gps_pt.status = something
-            gps_pt.unix_sec = data['Time_s'][i] # hack an incrementing time here
+            gps_pt.time = timestamp[i][0]
+            gps_pt.unix_sec = timestamp[i][0] # hack incrementing time stamp here
             gps_pt.lat = lat
             gps_pt.lon = lon
-            gps_pt.alt = data['GPS_Altitude'][i]
-            gps_pt.vn = data['GPS_North_Velocity'][i]
-            gps_pt.ve = data['GPS_East_Velocity'][i]
-            gps_pt.vd = data['GPS_Down_Velocity'][i]
-            gps_pt.sats = int(data['GPS_NumberSatellites'][i])
+            gps_pt.alt = lla[i][2]
+            gps_pt.vn = vel[i][0]
+            gps_pt.ve = vel[i][1]
+            gps_pt.vd = vel[i][2]
+            gps_pt.sats = int(sats[i][0])
             result['gps'].append(gps_pt)
             
-        pitot_calibrate = 1.0
-        diff_pa = data['Pitot_DiffPressure_Pressure_Pa'][i]
-        if diff_pa < 0:
-            diff_pa = 0.0
-        static_pa = data['Pitot_StaticPressure_Pressure_Pa'][i]
-        airspeed_mps = math.sqrt( 2*diff_pa / 1.225 ) * pitot_calibrate;
-        P0 = 1013.25
-        T = 15.0
-        P = static_pa / 100.0   # convert to mbar
-        tmp1 = math.pow((P0/P), 1.0/5.257) - 1.0
-        alt_m = (tmp1 * (T + 273.15)) / 0.0065
-        
+    airspeed = data['Airdata']['vIas_mps'][()] * mps2kt
+    altitude = data['Airdata']['alt_m'][()]
+    for i in range( size ):
         air_pt = Record()
-        air_pt.time = data['Time_s'][i]
-        air_pt.airspeed = airspeed_mps * mps2kt
-        air_pt.altitude = alt_m
+        air_pt.time = timestamp[i][0]
+        air_pt.airspeed = airspeed[i][0]
+        air_pt.altitude = altitude[i][0]
         result['air'].append(air_pt)
         
-        # nav = NAVdata()
-        # nav.time = float(t[k])
-        # nav.lat = float(flight_data.navlat[k])
-        # nav.lon = float(flight_data.navlon[k])
-        # nav.alt = float(flight_data.navalt[k])
-        # nav.vn = float(flight_data.navvn[k])
-        # nav.ve = float(flight_data.navve[k])
-        # nav.vd = float(flight_data.navvd[k])
-        # nav.phi = float(flight_data.phi[k])
-        # nav.the = float(flight_data.theta[k])
-        # nav.psi = float(flight_data.psi[k])
-        # result['filter'].append(nav)
+    # nav = NAVdata()
+    # nav.time = float(t[k])
+    # nav.lat = float(flight_data.navlat[k])
+    # nav.lon = float(flight_data.navlon[k])
+    # nav.alt = float(flight_data.navalt[k])
+    # nav.vn = float(flight_data.navvn[k])
+    # nav.ve = float(flight_data.navve[k])
+    # nav.vd = float(flight_data.navvd[k])
+    # nav.phi = float(flight_data.phi[k])
+    # nav.the = float(flight_data.theta[k])
+    # nav.psi = float(flight_data.psi[k])
+    # result['filter'].append(nav)
 
+    inceptors = data['SbusRx_0']['Inceptors'][()]
+    for i in range( size ):
         act = Record()
-        act.time = data['Time_s'][i]
-        act.aileron = data['SbusRx_Inceptor_Roll'][i]
-        act.elevator = data['SbusRx_Inceptor_Pitch'][i]
-        act.throttle = data['SbusRx_Inceptor_Thrust'][i]
-        act.rudder = data['SbusRx_Inceptor_Yaw'][i]
+        act.time = timestamp[i][0]
+        act.aileron = inceptors[i][0]
+        act.elevator = inceptors[i][1]
+        act.throttle = inceptors[i][4]
+        act.rudder = inceptors[i][2]
         result['act'].append(act)
         
-    dir = os.path.dirname(mat_filename)
+    dir = os.path.dirname(h5_filename)
     print 'dir:', dir
     
     filename = os.path.join(dir, 'imu-0.txt')
