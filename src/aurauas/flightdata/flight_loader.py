@@ -7,7 +7,7 @@ import px4_ulog
 import sentera
 import sentera2
 import umn1_mat
-import umn3_mat
+import umn3_hdf5
 
 def load(path, recal_file=None):
     flight_data = {}
@@ -36,12 +36,11 @@ def load(path, recal_file=None):
         print 'Detected umn1 format.'
         print 'Notice: assuming umn1 .mat format'
         flight_data = umn1_mat.load(path)
-        #flight_data = umn3_mat.load(path)
         flight_format = 'umn1'
     elif ext == '.h5' or ext == '.hdf5':
         # umn3 (hdf5)
         print 'Detected umn3 (hdf5) format.'
-        flight_data = umn3_mat.load(path)
+        flight_data = umn3_hdf5.load(path)
         flight_format = 'umn3'
     elif os.path.exists(ulog_path):
         # px4_ulog

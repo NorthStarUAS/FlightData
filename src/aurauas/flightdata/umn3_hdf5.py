@@ -33,7 +33,7 @@ def load(h5_filename):
     result['gps'] = []
     result['air'] = []
     result['filter'] = []
-    #result['act'] = []
+    result['act'] = []
     result['pilot'] = []
     
     last_gps_lon = -9999.0
@@ -116,18 +116,45 @@ def load(h5_filename):
     auto = data['SbusRx_0']['AutoEnabled'][()]
     aux = data['SbusRx_0']['AuxInputs'][()]
     for i in range( size ):
+        pilot = Record()
+        pilot.time = timestamp[i][0]
+        pilot.aileron = inceptors[i][0]
+        pilot.elevator = inceptors[i][1]
+        pilot.throttle = inceptors[i][4]
+        pilot.rudder = inceptors[i][2]
+        pilot.flaps = inceptors[i][3]
+        pilot.gear = 0.0
+        pilot.aux1 = 0.0
+        pilot.auto_manual = aux[i][0]
+        result['pilot'].append(pilot)
+        
+    cmds = data['Cntrl']['cmdCntrl'][()]
+    for i in range( size ):
         act = Record()
         act.time = timestamp[i][0]
-        act.aileron = inceptors[i][0]
-        act.elevator = inceptors[i][1]
-        act.throttle = inceptors[i][4]
-        act.rudder = inceptors[i][2]
-        act.flaps = inceptors[i][3]
+        act.aileron = cmds[i][0]
+        act.elevator = cmds[i][1]
+        act.rudder = cmds[i][2]
+        act.throttle = cmds[i][3]
+        act.flaps = 0.0
         act.gear = 0.0
         act.aux1 = 0.0
-        act.auto_manual = aux[i][0]
-        result['pilot'].append(act)
-        
+        result['act'].append(act)
+                
+    result['ap'] = []
+    for i in range( size ):
+        ap = Record()
+        ap.time = timestamp[i][0]
+        ap.master_switch = int(aux[i][0] > 0)
+        ap.pilot_pass_through = int(0)
+        ap.hdg = 0.0
+        ap.roll = inceptors[i][0] * 60.0
+        ap.alt = 0.0
+        ap.pitch = inceptors[i][1] * 60.0
+        ap.speed = 23.0 * mps2kt
+        ap.ground = 0.0
+        result['ap'].append(ap)
+
     dir = os.path.dirname(h5_filename)
     print 'dir:', dir
     

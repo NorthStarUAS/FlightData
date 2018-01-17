@@ -236,8 +236,7 @@ class FlightInterpolate():
                               act.rudder,
                               act.gear,
                               act.flaps,
-                              act.aux1,
-                              act.auto_manual])
+                              act.aux1])
             array = np.array(table)
             x = array[:,0]
             self.act_ail = interpolate.interp1d(x, array[:,1],
