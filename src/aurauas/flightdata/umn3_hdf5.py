@@ -1,8 +1,4 @@
-# load umn .mat file data format
-
-# MAT_FILENAME = 'thor_flight75_WaypointTracker_150squareWaypointNew_2012_10_10.mat'
-
-FLAG_UNBIASED_IMU = False             # Choose if accel/gyro should be bias-free.
+# load umn3 .h5 file data format
 
 import h5py
 import math
@@ -29,12 +25,6 @@ def load(h5_filename):
         
     # create data structures for ekf processing
     result = {}
-    result['imu'] = []
-    result['gps'] = []
-    result['air'] = []
-    result['filter'] = []
-    result['act'] = []
-    result['pilot'] = []
     
     last_gps_lon = -9999.0
     last_gps_lat = -9999.0
@@ -43,6 +33,7 @@ def load(h5_filename):
 
     timestamp = data['Fmu']['Time_us'][()].astype(float) * 1e-6
 
+    result['imu'] = []
     gyro = data['Mpu9250']['Gyro_rads'][()].astype(float)
     accel = data['Mpu9250']['Accel_mss'][()].astype(float)
     mag = data['Mpu9250']['Mag_uT'][()].astype(float)
@@ -56,12 +47,27 @@ def load(h5_filename):
         imu_pt.ax = accel[i][0]
         imu_pt.ay = accel[i][1]
         imu_pt.az = accel[i][2]
-        imu_pt.hx = mag[i][0]
-        imu_pt.hy = mag[i][1]
-        imu_pt.hz = mag[i][2]
+        aircraft = 'Mjolner'
+        if aircraft == 'Mjolner':
+            affine = np.array(
+                [[ 0.018620589,   0.0003888403, -0.0003962612, -0.229103659 ],
+                 [-0.0014668783,  0.0179526977,  0.0008107074, -1.0884978428],
+                 [-0.000477532,   0.0004510884,  0.016958479,   0.3941687691],
+                 [ 0.,            0.,            0.,            1.          ]]
+)
+            raw = np.hstack((mag[i], 1.0))
+            cal = np.dot(affine, raw)
+            imu_pt.hx = cal[0]
+            imu_pt.hy = cal[1]
+            imu_pt.hz = cal[2]
+        else:
+            imu_pt.hx = mag[i][0]
+            imu_pt.hy = mag[i][1]
+            imu_pt.hz = mag[i][2]
         imu_pt.temp = temp[i][0]
         result['imu'].append(imu_pt)
 
+    result['gps'] = []
     lla = data['Gps_0']['LLA'][()]
     vel = data['Gps_0']['NEDVelocity_ms'][()]
     sats = data['Gps_0']['NumberSatellites'][()]
@@ -84,6 +90,7 @@ def load(h5_filename):
             gps_pt.sats = int(sats[i][0])
             result['gps'].append(gps_pt)
             
+    result['air'] = []
     airspeed = data['Airdata']['vIas_mps'][()] * mps2kt
     altitude = data['Airdata']['alt_m'][()]
     for i in range( size ):
@@ -94,9 +101,12 @@ def load(h5_filename):
         air_pt.alt_true = altitude[i][0]
         result['air'].append(air_pt)
         
+    result['filter'] = []
     lla = data['NavFilter']['LLA'][()]
     vel = data['NavFilter']['NEDVelocity_ms'][()]
     euler = data['NavFilter']['Euler_rad'][()]
+    gb = data['NavFilter']['GyroBias_rads'][()]
+    ab = data['NavFilter']['AccelBias_mss'][()]
     for i in range( size ):
         nav = Record()
         nav.time = timestamp[i][0]
@@ -109,9 +119,16 @@ def load(h5_filename):
         nav.phi = euler[i][0]
         nav.the = euler[i][1]
         nav.psi = euler[i][2]
+        nav.p_bias = gb[i][0]
+        nav.q_bias = gb[i][1]
+        nav.r_bias = gb[i][2]
+        nav.ax_bias = ab[i][0]
+        nav.ay_bias = ab[i][1]
+        nav.az_bias = ab[i][2]
         if abs(nav.lat) > 0.0001 and abs(nav.lon) > 0.0001:
             result['filter'].append(nav)
 
+    result['pilot'] = []
     inceptors = data['SbusRx_0']['Inceptors'][()]
     auto = data['SbusRx_0']['AutoEnabled'][()]
     aux = data['SbusRx_0']['AuxInputs'][()]
@@ -128,6 +145,7 @@ def load(h5_filename):
         pilot.auto_manual = aux[i][0]
         result['pilot'].append(pilot)
         
+    result['act'] = []
     cmds = data['Cntrl']['cmdCntrl'][()]
     for i in range( size ):
         act = Record()
@@ -136,6 +154,8 @@ def load(h5_filename):
         act.elevator = cmds[i][1]
         act.rudder = cmds[i][2]
         act.throttle = cmds[i][3]
+        if act.throttle > 1.1:
+            act.throttle = 0
         act.flaps = 0.0
         act.gear = 0.0
         act.aux1 = 0.0
