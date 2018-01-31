@@ -26,6 +26,7 @@ def load(flight_dir, recalibrate=None):
     pilot_file = os.path.join(flight_dir, "pilot-0.csv")
     act_file = os.path.join(flight_dir, "act-0.csv")
     ap_file = os.path.join(flight_dir, "ap-0.csv")
+    health_file = os.path.join(flight_dir, "health-0.csv")
     imu_bias_file = os.path.join(flight_dir, "imubias.csv")
 
     # HEY: in the latest aura code, calibrated magnetometer is logged,
@@ -40,14 +41,6 @@ def load(flight_dir, recalibrate=None):
     #      [-0.0169905025,  1.7164397411, -0.0001290047, -0.1140304977],
     #      [ 0.0424979948, -0.0038515935,  1.7193766423, -0.1449816095],
     #      [ 0.          ,  0.          ,  0.          ,  1.          ]]
-    # )
-
-    # Tyr
-    # mag_affine = np.array(
-    #     [[ 1.810,  0.109,  0.285, -0.237],
-    #      [-0.078,  1.931, -0.171, -0.060],
-    #      [ 0.008,  0.109,  1.929,  0.085],
-    #      [ 0.   ,  0.   ,  0.   ,  1.      ]]
     # )
 
     # telemaster apm2_101
@@ -242,6 +235,21 @@ def load(flight_dir, recalibrate=None):
                 ap.speed = float(row['airspeed_kt'])
                 ap.ground = float(row['altitude_ground_m'])
                 result['ap'].append(ap)
+
+    if os.path.exists(health_file):
+        result['health'] = []
+        with open(health_file, 'rb') as fhealth:
+            reader = csv.DictReader(fhealth)
+            for row in reader:
+                health = Record()
+                health.time = float(row['timestamp'])
+                health.load_avg = float(row['system_load_avg'])
+                health.avionics_vcc = float(row['board_vcc'])
+                health.main_vcc = float(row['extern_volts'])
+                health.cell_vcc = float(row['extern_cell_volts'])
+                health.main_amps = float(row['extern_amps'])
+                health.main_mah = float(row['extern_current_mah'])
+                result['health'].append(health)
 
     cal = imucal.Calibration()
     if os.path.exists(imucal_json):

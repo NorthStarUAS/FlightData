@@ -175,6 +175,14 @@ def load(h5_filename):
         ap.ground = 0.0
         result['ap'].append(ap)
 
+    result['health'] = []
+    vcc = data['Fmu']['InputVoltage_V']
+    for i in range( size ):
+        health = Record()
+        health.time = timestamp[i][0]
+        health.main_vcc = vcc[i][0]
+        result['health'].append(health)
+        
     dir = os.path.dirname(h5_filename)
     print 'dir:', dir
     

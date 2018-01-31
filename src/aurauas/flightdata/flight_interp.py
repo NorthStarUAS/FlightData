@@ -61,6 +61,8 @@ class FlightInterpolate():
         self.ap_pitch = None
         self.ap_speed = None
 
+        self.power_main = None
+
     # build the interpolators
     def build(self, flight_data):
         if 'imu' in flight_data:
@@ -282,3 +284,14 @@ class FlightInterpolate():
             self.ap_speed = interpolate.interp1d(x, array[:,6],
                                                  bounds_error=False,
                                                  fill_value=0.0)
+            
+        if 'health' in flight_data and len(flight_data['health']):
+            table = []
+            for health in flight_data['health']:
+                table.append([health.time,
+                              health.main_vcc])
+            array = np.array(table)
+            x = array[:,0]
+            self.power_main = interpolate.interp1d(x, array[:,1],
+                                                   bounds_error=False,
+                                                   fill_value=0.0)
