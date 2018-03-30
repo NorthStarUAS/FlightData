@@ -62,6 +62,8 @@ class FlightInterpolate():
         self.ap_speed = None
 
         self.power_main = None
+        self.excite_mode = None
+        self.test_index = None
 
     # build the interpolators
     def build(self, flight_data):
@@ -287,11 +289,25 @@ class FlightInterpolate():
             
         if 'health' in flight_data and len(flight_data['health']):
             table = []
+
+            has_test_index = False
             for health in flight_data['health']:
-                table.append([health.time,
-                              health.main_vcc])
+                row = [health.time, health.main_vcc]
+                if hasattr(health, 'excite_mode') and hasattr(health, 'test_index'):
+                    has_test_index = True
+                    row.append(health.excite_mode)
+                    row.append(health.test_index)
+                table.append(row)
             array = np.array(table)
             x = array[:,0]
             self.power_main = interpolate.interp1d(x, array[:,1],
                                                    bounds_error=False,
                                                    fill_value=0.0)
+            if has_test_index:
+                self.excite_mode = interpolate.interp1d(x, array[:,2],
+                                                        bounds_error=False,
+                                                        fill_value=0.0)
+                self.test_index = interpolate.interp1d(x, array[:,3],
+                                                       bounds_error=False,
+                                                       fill_value=0.0)
+                
