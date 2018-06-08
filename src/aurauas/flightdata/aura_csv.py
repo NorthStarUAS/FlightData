@@ -63,7 +63,7 @@ def load(flight_dir, recalibrate=None):
     #print mag_affine
     
     result['imu'] = []
-    with open(imu_file, 'rb') as fimu:
+    with open(imu_file, 'r') as fimu:
         reader = csv.DictReader(fimu)
         for row in reader:
             imu = Record()
@@ -82,7 +82,7 @@ def load(flight_dir, recalibrate=None):
 
     result['gps'] = []
     last_time = -1.0
-    with open(gps_file, 'rb') as fgps:
+    with open(gps_file, 'r') as fgps:
         reader = csv.DictReader(fgps)
         for row in reader:
             # Note: aurauas logs unix time of the gps record, not tow,
@@ -106,7 +106,7 @@ def load(flight_dir, recalibrate=None):
             last_time = time
 
     result['air'] = []
-    with open(air_file, 'rb') as fair:
+    with open(air_file, 'r') as fair:
         reader = csv.DictReader(fair)
         for row in reader:
             air = Record()
@@ -121,7 +121,7 @@ def load(flight_dir, recalibrate=None):
 
     # load filter records if they exist (for comparison purposes)
     result['filter'] = []
-    with open(filter_file, 'rb') as ffilter:
+    with open(filter_file, 'r') as ffilter:
         reader = csv.DictReader(ffilter)
         for row in reader:
             lat = float(row['latitude_deg'])
@@ -155,7 +155,7 @@ def load(flight_dir, recalibrate=None):
     # purposes)
     if os.path.exists(filter_post):
         result['filter_post'] = []
-        with open(filter_post, 'rb') as ffilter:
+        with open(filter_post, 'r') as ffilter:
             reader = csv.DictReader(ffilter)
             for row in reader:
                 lat = float(row['latitude_deg'])
@@ -187,7 +187,7 @@ def load(flight_dir, recalibrate=None):
 
     if os.path.exists(pilot_file):
         result['pilot'] = []
-        with open(pilot_file, 'rb') as fpilot:
+        with open(pilot_file, 'r') as fpilot:
             reader = csv.DictReader(fpilot)
             for row in reader:
                 pilot = Record()
@@ -204,7 +204,7 @@ def load(flight_dir, recalibrate=None):
 
     if os.path.exists(act_file):
         result['act'] = []
-        with open(act_file, 'rb') as fact:
+        with open(act_file, 'r') as fact:
             reader = csv.DictReader(fact)
             for row in reader:
                 act = Record()
@@ -221,7 +221,7 @@ def load(flight_dir, recalibrate=None):
 
     if os.path.exists(ap_file):
         result['ap'] = []
-        with open(ap_file, 'rb') as fap:
+        with open(ap_file, 'r') as fap:
             reader = csv.DictReader(fap)
             for row in reader:
                 ap = Record()
@@ -238,7 +238,7 @@ def load(flight_dir, recalibrate=None):
 
     if os.path.exists(health_file):
         result['health'] = []
-        with open(health_file, 'rb') as fhealth:
+        with open(health_file, 'r') as fhealth:
             reader = csv.DictReader(fhealth)
             for row in reader:
                 health = Record()
