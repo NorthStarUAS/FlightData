@@ -128,10 +128,10 @@ class FlightInterpolate():
                                                      fill_value=0.0)
         if 'filter_post' in flight_data:
             filter_src = flight_data['filter_post']
-            print 'using post-process filter data'
+            print('using post-process filter data')
         elif 'filter' in flight_data:
             filter_src = flight_data['filter']
-            print 'using on-board filter data'
+            print('using on-board filter data')
         else:
             filter_src = None
         if filter_src:
@@ -194,7 +194,7 @@ class FlightInterpolate():
                                                      bounds_error=False,
                                                      fill_value=0.0)
             if has_alphabeta:
-                print "air data has alpha/beta data"
+                print("air data has alpha/beta data")
                 self.air_alpha = interpolate.interp1d(x, array[:,3],
                                                       bounds_error=False,
                                                       fill_value=0.0)

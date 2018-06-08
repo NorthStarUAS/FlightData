@@ -90,7 +90,7 @@ def load(flight_dir):
     #      [ 0.0000145964,  0.000267444,   0.0159433791,  2.5630653789],
     #      [ 0.          ,  0.         ,   0.          ,  1.          ]]
     # )
-    print mag_affine
+    print(mag_affine)
 
     imu_source = 'camera'
     #imu_source = 'autopilot'
@@ -162,7 +162,7 @@ def load(flight_dir):
                 imu_data[i].ax = ax[i]
                 imu_data[i].ay = ay[i]
                 imu_data[i].az = az[i]
-                print "%.4f, %.4f, %.4f, %.4f" % (imu_data[i].time, ax[i], ay[i], az[i])
+                print("%.4f, %.4f, %.4f, %.4f" % (imu_data[i].time, ax[i], ay[i], az[i]))
         elif do_filter == 'low-pass':
             # filter accel data with simple lowpass filter
             ax_filt = imu_data[0].ax
@@ -175,7 +175,7 @@ def load(flight_dir):
                 imu.ax = ax_filt
                 imu.ay = ay_filt
                 imu.az = az_filt
-                print "%.4f, %.4f, %.4f, %.4f" % (imu.time, imu.ax, imu.ay, imu.az)
+                print("%.4f, %.4f, %.4f, %.4f" % (imu.time, imu.ax, imu.ay, imu.az))
 
     if os.path.exists(procerus_file):
         fproc = fileinput.input(procerus_file)
@@ -229,7 +229,7 @@ def load(flight_dir):
                     filter_data.append(nav)
 
                 else:
-                    print 'procerus-metadata.csv: unknown structure:', line
+                    print('procerus-metadata.csv: unknown structure:', line)
                 
     return imu_data, gps_data, air_data, filter_data
 

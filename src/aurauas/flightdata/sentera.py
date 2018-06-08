@@ -94,7 +94,7 @@ def load(flight_dir):
          [ 0.0005079058,  0.0003014306,  0.0176589615,  0.9988130618],
          [ 0.          ,  0.          ,  0.          ,  1.          ]]
     )
-    print mag_affine
+    print(mag_affine)
 
     result['imu'] = []
     fimu = fileinput.input(imu_file)
@@ -207,7 +207,7 @@ def load(flight_dir):
     # load filter (post process) records if they exist (for comparison
     # purposes)
     if os.path.exists(filter_post):
-        print 'found filter-post-ins.txt, using that for ekf results'
+        print('found filter-post-ins.txt, using that for ekf results')
         result['filter'] = []
         ffilter = fileinput.input(filter_post)
         for line in ffilter:
@@ -302,7 +302,7 @@ def rewrite_pix4d_csv(base_dir, data_store):
         (lat, lon, alt, psi, the, phi, time) = map(float, tokens[1:8])
         time /= 1000000.0       # convert seconds
         while data_store.time[i] < time:
-            print i, data_store.time[i], '<', time
+            print(i, data_store.time[i], '<', time)
             i += 1
         line = "%s,%.8f,%.8f,%.4f,%.4f,%.4f,%.4f" % \
                (image,

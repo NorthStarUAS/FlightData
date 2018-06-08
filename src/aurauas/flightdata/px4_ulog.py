@@ -207,7 +207,7 @@ def load(csv_base):
     # load filter (post process) records if they exist (for comparison
     # purposes)
     if os.path.exists(filter_post):
-        print "found filter_post.txt file"
+        print("found filter_post.txt file")
         result['filter_post'] = []
         ffilter = fileinput.input(filter_post)
         for line in ffilter:

@@ -25,14 +25,14 @@ def load(mat_filename):
     # Load Flight Data: ## IMPORTANT to have the .mat file in the
     # flight_data and flight_info structures for this function ##
     data = sio.loadmat(filepath, struct_as_record=False, squeeze_me=True)
-    print 'Loaded Data Summary'
-    print '* File: %s' % filepath.split(os.path.sep)[-1]
+    print('Loaded Data Summary')
+    print('* File: %s' % filepath.split(os.path.sep)[-1])
     try:
         flight_data, flight_info = data['flight_data'], data['flight_info']
         print('* Date: %s' % flight_info.date)
         print('* Aircraft: %s' % flight_info.aircraft)
     except KeyError:
-        print 'KeyError'
+        print('KeyError')
         # Convert from Python dictionary to struct-like before
         flight_data = dict2struct()
         for k in data:
@@ -47,7 +47,7 @@ def load(mat_filename):
 
     # Fill in time data
     t = flight_data.time
-    print 't:', t
+    print('t:', t)
 
     # Magnetometer data - not used hence don't trust
     hm  = np.vstack((flight_data.hx, -flight_data.hy, -flight_data.hz)).T
@@ -199,7 +199,7 @@ def load(mat_filename):
         k += 1
 
     dir = os.path.dirname(mat_filename)
-    print 'dir:', dir
+    print('dir:', dir)
     
     filename = os.path.join(dir, 'imu-0.txt')
     f = open(filename, 'w')

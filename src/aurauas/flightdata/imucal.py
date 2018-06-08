@@ -44,7 +44,7 @@ class Calibration():
             else:
                 return False
         except:
-            print cal_file + ": load error:\n" + str(sys.exc_info()[1])
+            print(cal_file + ": load error:\n" + str(sys.exc_info()[1]))
             return False
 
         root.pretty_print()
@@ -106,7 +106,7 @@ class Calibration():
                     r += 1
             self.mag_affine_inv = np.linalg.inv(self.mag_affine)
         else:
-            print "mag_affine requires 16 values"
+            print("mag_affine requires 16 values")
         #print 'mag_affine:\n', self.mag_affine
         #print 'mag_affine_inv:\n', self.mag_affine_inv
 
@@ -157,13 +157,13 @@ class Calibration():
         affine_str = []
         for x in self.mag_affine.flat:
             affine_str.append('%.10f' % x)
-        print ' '.join(affine_str)
+        print(' '.join(affine_str))
         config.setString('mag_affine', ' '.join(affine_str))
         
         try:
             props_json.save(cal_file, config)
         except:
-            print "error saving " + cal_file + ": " + str(sys.exc_info()[1])
+            print("error saving " + cal_file + ": " + str(sys.exc_info()[1]))
             return
 
     # correct the IMU data given the current bias and scale errors

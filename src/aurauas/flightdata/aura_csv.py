@@ -6,7 +6,7 @@ import os
 import math
 import re
 
-import imucal
+from . import imucal
 
 d2r = math.pi / 180.0
 
@@ -254,11 +254,11 @@ def load(flight_dir, recalibrate=None):
     cal = imucal.Calibration()
     if os.path.exists(imucal_json):
         cal.load(imucal_json)
-        print 'back correcting imu data (to get original raw values)'
+        print('back correcting imu data (to get original raw values)')
         cal.back_correct(result['imu'], result['filter'])
 
     if recalibrate:
-        print 'recalibrating imu data using alternate calibration file:', recalibrate
+        print('recalibrating imu data using alternate calibration file:', recalibrate)
         rcal = imucal.Calibration()
         rcal.load(recalibrate)
         result['imu'] = rcal.correct(result['imu'])

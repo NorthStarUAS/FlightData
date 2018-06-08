@@ -1,6 +1,6 @@
 # load umn3 .h5 file data format
 
-import h5py
+import h5py                     # dnf install python3-h5py
 import math
 import os, sys
 join = os.path.join
@@ -188,7 +188,7 @@ def load(h5_filename):
         result['health'].append(health)
         
     dir = os.path.dirname(h5_filename)
-    print 'dir:', dir
+    print('dir:', dir)
     
     filename = os.path.join(dir, 'imu-0.txt')
     f = open(filename, 'w')
