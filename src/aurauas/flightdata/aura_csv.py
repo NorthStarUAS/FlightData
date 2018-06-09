@@ -192,14 +192,15 @@ def load(flight_dir, recalibrate=None):
             for row in reader:
                 pilot = Record()
                 pilot.time = float(row['timestamp'])
-                pilot.aileron = float(row['channel[0]'])
-                pilot.elevator = float(row['channel[1]'])
+                pilot.auto_manual = float(row['channel[0]'])
+                pilot.throttle_safety = float(row['channel[1]'])
                 pilot.throttle = float(row['channel[2]'])
-                pilot.rudder = float(row['channel[3]'])
-                pilot.gear = float(row['channel[4]'])
-                pilot.flaps = float(row['channel[5]'])
-                pilot.aux1 = float(row['channel[6]'])
-                pilot.auto_manual = float(row['channel[7]'])
+                pilot.aileron = float(row['channel[3]'])
+                pilot.elevator = float(row['channel[4]'])
+                pilot.rudder = float(row['channel[5]'])
+                pilot.flaps = float(row['channel[6]'])
+                pilot.aux1 = float(row['channel[7]'])
+                pilot.gear = 0
                 result['pilot'].append(pilot)
 
     if os.path.exists(act_file):
