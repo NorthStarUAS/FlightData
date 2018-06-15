@@ -42,6 +42,8 @@ class FlightInterpolate():
         self.air_true_alt = None
         self.air_alpha = None
         self.air_beta = None
+        self.air_wind_dir = None
+        self.air_wind_speed = None
 
         self.pilot_ail = None
         self.pilot_ele = None
@@ -179,7 +181,8 @@ class FlightInterpolate():
             table = []
             has_alphabeta = False
             for air in flight_data['air']:
-                record = [air.time, air.airspeed, air.alt_true]
+                record = [air.time, air.airspeed, air.alt_true,
+                          air.wind_dir, air.wind_speed]
                 if hasattr(air, 'alpha_deg') and hasattr(air, 'beta_deg'):
                     record.append( air.alpha_deg )
                     record.append( air.beta_deg )
@@ -193,12 +196,18 @@ class FlightInterpolate():
             self.air_true_alt = interpolate.interp1d(x, array[:,2],
                                                      bounds_error=False,
                                                      fill_value=0.0)
+            self.air_wind_dir = interpolate.interp1d(x, array[:,3],
+                                                     bounds_error=False,
+                                                     fill_value=0.0)
+            self.air_wind_speed = interpolate.interp1d(x, array[:,4],
+                                                     bounds_error=False,
+                                                     fill_value=0.0)
             if has_alphabeta:
                 print("air data has alpha/beta data")
-                self.air_alpha = interpolate.interp1d(x, array[:,3],
+                self.air_alpha = interpolate.interp1d(x, array[:,5],
                                                       bounds_error=False,
                                                       fill_value=0.0)
-                self.air_beta = interpolate.interp1d(x, array[:,4],
+                self.air_beta = interpolate.interp1d(x, array[:,6],
                                                      bounds_error=False,
                                                      fill_value=0.0)
         if 'pilot' in flight_data:

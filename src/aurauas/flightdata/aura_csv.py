@@ -117,6 +117,8 @@ def load(flight_dir, recalibrate=None):
             air.airspeed = float(row['airspeed_smoothed_kt'])
             air.alt_press = float(row['altitude_smoothed_m'])
             air.alt_true = float(row['altitude_true_m'])
+            air.wind_dir = float(row['wind_dir_deg'])
+            air.wind_speed = float(row['wind_speed_kt'])
             result['air'].append( air )
 
     # load filter records if they exist (for comparison purposes)
