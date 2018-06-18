@@ -179,10 +179,14 @@ class FlightInterpolate():
                                                     fill_value=0.0)
         if 'air' in flight_data:
             table = []
+            has_wind = False
             has_alphabeta = False
             for air in flight_data['air']:
-                record = [air.time, air.airspeed, air.alt_true,
-                          air.wind_dir, air.wind_speed]
+                record = [air.time, air.airspeed, air.alt_true]
+                if hasattr(air, 'wind_dir') and hasattr(air, 'wind_speed'):
+                    record.append( air.wind_dir )
+                    record.append( air.wind_speed )
+                    has_wind = True
                 if hasattr(air, 'alpha_deg') and hasattr(air, 'beta_deg'):
                     record.append( air.alpha_deg )
                     record.append( air.beta_deg )
@@ -196,18 +200,23 @@ class FlightInterpolate():
             self.air_true_alt = interpolate.interp1d(x, array[:,2],
                                                      bounds_error=False,
                                                      fill_value=0.0)
-            self.air_wind_dir = interpolate.interp1d(x, array[:,3],
-                                                     bounds_error=False,
-                                                     fill_value=0.0)
-            self.air_wind_speed = interpolate.interp1d(x, array[:,4],
-                                                     bounds_error=False,
-                                                     fill_value=0.0)
+            if has_wind:
+                self.air_wind_dir = interpolate.interp1d(x, array[:,3],
+                                                         bounds_error=False,
+                                                         fill_value=0.0)
+                self.air_wind_speed = interpolate.interp1d(x, array[:,4],
+                                                           bounds_error=False,
+                                                           fill_value=0.0)
             if has_alphabeta:
+                if has_wind:
+                    base = 5
+                else:
+                    base = 3
                 print("air data has alpha/beta data")
-                self.air_alpha = interpolate.interp1d(x, array[:,5],
+                self.air_alpha = interpolate.interp1d(x, array[:,base],
                                                       bounds_error=False,
                                                       fill_value=0.0)
-                self.air_beta = interpolate.interp1d(x, array[:,6],
+                self.air_beta = interpolate.interp1d(x, array[:,(base+1)],
                                                      bounds_error=False,
                                                      fill_value=0.0)
         if 'pilot' in flight_data:
