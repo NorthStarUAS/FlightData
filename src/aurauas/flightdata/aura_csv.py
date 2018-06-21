@@ -17,6 +17,7 @@ def load(flight_dir, recalibrate=None):
     result = {}
 
     # load imu/gps data files
+    event_file = os.path.join(flight_dir, "event-0.csv")
     imu_file = os.path.join(flight_dir, "imu-0.csv")
     imucal_json = os.path.join(flight_dir, "imucal.json")
     gps_file = os.path.join(flight_dir, "gps-0.csv")
@@ -61,7 +62,21 @@ def load(flight_dir, recalibrate=None):
 
     #np.set_printoptions(precision=10,suppress=True)
     #print mag_affine
-    
+
+    pilot_mapping = 'Aura3'       # APM2 or Aura3
+    result['event'] = []
+    with open(event_file, 'r') as fevent:
+        reader = csv.DictReader(fevent)
+        for row in reader:
+            event = Record()
+            event.time = float(row['timestamp'])
+            event.message = row['message']
+            if 'Aura3' in event.message:
+                pilot_mapping = 'Aura3'
+            if 'APM2' in event.message:
+                pilot_mapping = 'APM2'
+            result['event'].append( event )
+
     result['imu'] = []
     with open(imu_file, 'r') as fimu:
         reader = csv.DictReader(fimu)
@@ -188,21 +203,33 @@ def load(flight_dir, recalibrate=None):
                     result['filter_post'].append(nav)
 
     if os.path.exists(pilot_file):
+        print('Pilot input mapping:', pilot_mapping)
         result['pilot'] = []
         with open(pilot_file, 'r') as fpilot:
             reader = csv.DictReader(fpilot)
             for row in reader:
                 pilot = Record()
                 pilot.time = float(row['timestamp'])
-                pilot.auto_manual = float(row['channel[0]'])
-                pilot.throttle_safety = float(row['channel[1]'])
-                pilot.throttle = float(row['channel[2]'])
-                pilot.aileron = float(row['channel[3]'])
-                pilot.elevator = float(row['channel[4]'])
-                pilot.rudder = float(row['channel[5]'])
-                pilot.flaps = float(row['channel[6]'])
-                pilot.aux1 = float(row['channel[7]'])
-                pilot.gear = 0
+                if pilot_mapping == 'Aura3':
+                    pilot.auto_manual = float(row['channel[0]'])
+                    pilot.throttle_safety = float(row['channel[1]'])
+                    pilot.throttle = float(row['channel[2]'])
+                    pilot.aileron = float(row['channel[3]'])
+                    pilot.elevator = float(row['channel[4]'])
+                    pilot.rudder = float(row['channel[5]'])
+                    pilot.flaps = float(row['channel[6]'])
+                    pilot.aux1 = float(row['channel[7]'])
+                    pilot.gear = 0
+                elif pilot_mapping == 'APM2':
+                    pilot.aileron = float(row['channel[0]'])
+                    pilot.elevator = float(row['channel[1]'])
+                    pilot.throttle = float(row['channel[2]'])
+                    pilot.rudder = float(row['channel[3]'])
+                    pilot.gear = float(row['channel[4]'])
+                    pilot.flaps = float(row['channel[5]'])
+                    pilot.aux1 = float(row['channel[6]'])
+                    pilot.auto_manual = float(row['channel[7]'])
+                    pilot.throttle_safety = 0.0
                 result['pilot'].append(pilot)
 
     if os.path.exists(act_file):
