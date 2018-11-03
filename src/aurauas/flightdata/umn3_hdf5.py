@@ -29,24 +29,30 @@ def load(h5_filename):
     last_gps_lon = -9999.0
     last_gps_lat = -9999.0
     
-    size = len(data['Fmu']['Time_us'])
+    size = len(data['/Sensors/Fmu/Time_us'])
 
-    timestamp = data['Fmu']['Time_us'][()].astype(float) * 1e-6
+    timestamp = data['/Sensors/Fmu/Time_us'][()].astype(float) * 1e-6
 
     result['imu'] = []
-    gyro = data['Mpu9250']['Gyro_rads'][()].astype(float)
-    accel = data['Mpu9250']['Accel_mss'][()].astype(float)
-    mag = data['Mpu9250']['Mag_uT'][()].astype(float)
-    temp = data['Mpu9250']['Temp_C'][()].astype(float)
+    gx = data['/Sensors/Fmu/Mpu9250/GyroX_rads'][()].astype(float)
+    gy = data['/Sensors/Fmu/Mpu9250/GyroY_rads'][()].astype(float)
+    gz = data['/Sensors/Fmu/Mpu9250/GyroZ_rads'][()].astype(float)
+    ax = data['/Sensors/Fmu/Mpu9250/AccelX_mss'][()].astype(float)
+    ay = data['/Sensors/Fmu/Mpu9250/AccelY_mss'][()].astype(float)
+    az = data['/Sensors/Fmu/Mpu9250/AccelZ_mss'][()].astype(float)
+    hx = data['/Sensors/Fmu/Mpu9250/MagX_uT'][()].astype(float)
+    hy = data['/Sensors/Fmu/Mpu9250/MagY_uT'][()].astype(float)
+    hz = data['/Sensors/Fmu/Mpu9250/MagZ_uT'][()].astype(float)
+    temp = data['/Sensors/Fmu/Mpu9250/Temperature_C'][()].astype(float)
     for i in range( size ):
         imu_pt = Record()
         imu_pt.time = timestamp[i][0]
-        imu_pt.p = gyro[i][0]
-        imu_pt.q = gyro[i][1]
-        imu_pt.r = gyro[i][2]
-        imu_pt.ax = accel[i][0]
-        imu_pt.ay = accel[i][1]
-        imu_pt.az = accel[i][2]
+        imu_pt.p = gx[i][0]
+        imu_pt.q = gy[i][0]
+        imu_pt.r = gz[i][0]
+        imu_pt.ax = ax[i][0]
+        imu_pt.ay = ay[i][0]
+        imu_pt.az = az[i][0]
         aircraft = 'Mjolner'
         if aircraft == 'Mjolner':
             affine = np.array(
@@ -55,25 +61,30 @@ def load(h5_filename):
                  [-0.000477532,   0.0004510884,  0.016958479,   0.3941687691],
                  [ 0.,            0.,            0.,            1.          ]]
 )
-            raw = np.hstack((mag[i], 1.0))
-            cal = np.dot(affine, raw)
+            mag = np.array([hx[i][0], hy[i][0], hz[i][0], 1.0])
+            #raw = np.hstack((mag, 1.0))
+            cal = np.dot(affine, mag)
             imu_pt.hx = cal[0]
             imu_pt.hy = cal[1]
             imu_pt.hz = cal[2]
         else:
-            imu_pt.hx = mag[i][0]
-            imu_pt.hy = mag[i][1]
-            imu_pt.hz = mag[i][2]
+            imu_pt.hx = hx[i][0]
+            imu_pt.hy = hy[i][0]
+            imu_pt.hz = hz[i][0]
         imu_pt.temp = temp[i][0]
         result['imu'].append(imu_pt)
 
     result['gps'] = []
-    lla = data['Gps_0']['LLA'][()]
-    vel = data['Gps_0']['NEDVelocity_ms'][()]
-    sats = data['Gps_0']['NumberSatellites'][()]
+    lat_rad = data['/Sensors/uBlox/Latitude_rad'][()]
+    lon_rad = data['/Sensors/uBlox/Longitude_rad'][()]
+    alt = data['/Sensors/uBlox/Altitude_m'][()]
+    vn = data['/Sensors/uBlox/NorthVelocity_ms'][()]
+    ve = data['/Sensors/uBlox/EastVelocity_ms'][()]
+    vd = data['/Sensors/uBlox/DownVelocity_ms'][()]
+    sats = data['/Sensors/uBlox/NumberSatellites'][()]
     for i in range( size ):
-        lat = lla[i][0] * r2d
-        lon = lla[i][1] * r2d
+        lat = lat_rad[i][0] * r2d
+        lon = lon_rad[i][0] * r2d
         #print lon,lat,alt
         if abs(lat - last_gps_lat) > 0.0000000001 or abs(lon - last_gps_lon) > 0.0000000000001:
             last_gps_lat = lat
@@ -83,16 +94,16 @@ def load(h5_filename):
             gps_pt.unix_sec = timestamp[i][0] # hack incrementing time stamp here
             gps_pt.lat = lat
             gps_pt.lon = lon
-            gps_pt.alt = lla[i][2]
-            gps_pt.vn = vel[i][0]
-            gps_pt.ve = vel[i][1]
-            gps_pt.vd = vel[i][2]
+            gps_pt.alt = alt[i][0]
+            gps_pt.vn = vn[i][0]
+            gps_pt.ve = ve[i][0]
+            gps_pt.vd = vd[i][0]
             gps_pt.sats = int(sats[i][0])
             result['gps'].append(gps_pt)
             
     result['air'] = []
-    airspeed = data['Airdata']['vIas_mps'][()] * mps2kt
-    altitude = data['Airdata']['alt_m'][()]
+    airspeed = data['/Sensor-Processing/vIAS_ms'][()] * mps2kt
+    altitude = data['/Sensor-Processing/Altitude_m'][()]
     for i in range( size ):
         air_pt = Record()
         air_pt.time = timestamp[i][0]
@@ -102,83 +113,96 @@ def load(h5_filename):
         result['air'].append(air_pt)
         
     result['filter'] = []
-    lla = data['NavFilter']['LLA'][()]
-    vel = data['NavFilter']['NEDVelocity_ms'][()]
-    euler = data['NavFilter']['Euler_rad'][()]
-    gb = data['NavFilter']['GyroBias_rads'][()]
-    ab = data['NavFilter']['AccelBias_mss'][()]
+    lat = data['/Sensor-Processing/Baseline/INS/Latitude_rad'][()]
+    lon = data['/Sensor-Processing/Baseline/INS/Longitude_rad'][()]
+    alt = data['/Sensor-Processing/Baseline/INS/Altitude_m'][()]
+    vn = data['/Sensor-Processing/Baseline/INS/NorthVelocity_ms'][()]
+    ve = data['/Sensor-Processing/Baseline/INS/EastVelocity_ms'][()]
+    vd = data['/Sensor-Processing/Baseline/INS/DownVelocity_ms'][()]
+    roll = data['/Sensor-Processing/Baseline/INS/Roll_rad'][()]
+    pitch = data['/Sensor-Processing/Baseline/INS/Pitch_rad'][()]
+    yaw = data['/Sensor-Processing/Baseline/INS/Yaw_rad'][()]
+    gbx = data['/Sensor-Processing/Baseline/INS/GyroXBias_rads'][()]
+    gby = data['/Sensor-Processing/Baseline/INS/GyroYBias_rads'][()]
+    gbz = data['/Sensor-Processing/Baseline/INS/GyroZBias_rads'][()]
+    abx = data['/Sensor-Processing/Baseline/INS/AccelXBias_mss'][()]
+    aby = data['/Sensor-Processing/Baseline/INS/AccelYBias_mss'][()]
+    abz = data['/Sensor-Processing/Baseline/INS/AccelZBias_mss'][()]
     for i in range( size ):
         nav = Record()
         nav.time = timestamp[i][0]
-        nav.lat = lla[i][0]
-        nav.lon = lla[i][1]
-        nav.alt = lla[i][2]
-        nav.vn = vel[i][0]
-        nav.ve = vel[i][1]
-        nav.vd = vel[i][2]
-        nav.phi = euler[i][0]
-        nav.the = euler[i][1]
-        nav.psi = euler[i][2]
-        nav.p_bias = gb[i][0]
-        nav.q_bias = gb[i][1]
-        nav.r_bias = gb[i][2]
-        nav.ax_bias = ab[i][0]
-        nav.ay_bias = ab[i][1]
-        nav.az_bias = ab[i][2]
+        nav.lat = lat[i][0]
+        nav.lon = lon[i][0]
+        nav.alt = alt[i][0]
+        nav.vn = vn[i][0]
+        nav.ve = ve[i][0]
+        nav.vd = vd[i][0]
+        nav.phi = roll[i][0]
+        nav.the = pitch[i][0]
+        nav.psi = yaw[i][0]
+        nav.p_bias = gbx[i][0]
+        nav.q_bias = gby[i][0]
+        nav.r_bias = gbz[i][0]
+        nav.ax_bias = abx[i][0]
+        nav.ay_bias = aby[i][0]
+        nav.az_bias = abz[i][0]
         if abs(nav.lat) > 0.0001 and abs(nav.lon) > 0.0001:
             result['filter'].append(nav)
 
     result['pilot'] = []
-    inceptors = data['SbusRx_0']['Inceptors'][()]
-    auto = data['SbusRx_0']['AutoEnabled'][()]
-    aux = data['SbusRx_0']['AuxInputs'][()]
+    roll = data['/Control/cmdRoll_rads'][()]
+    pitch = data['/Control/cmdPitch_rads'][()]
+    yaw = data['/Control/cmdYaw_rads'][()]
+    motor = data['/Control/cmdMotor_nd'][()]
+    flaps = data['/Control/cmdFlap_nd'][()]
+    auto = data['/Mission/socEngage'][()]
     for i in range( size ):
         pilot = Record()
         pilot.time = timestamp[i][0]
-        pilot.aileron = inceptors[i][0]
-        pilot.elevator = inceptors[i][1]
-        pilot.throttle = inceptors[i][4]
-        pilot.rudder = inceptors[i][2]
-        pilot.flaps = inceptors[i][3]
+        pilot.aileron = roll[i][0]
+        pilot.elevator = pitch[i][0]
+        pilot.throttle = motor[i][0]
+        pilot.rudder = yaw[i][0]
+        pilot.flaps = flaps[i][0]
         pilot.gear = 0.0
         pilot.aux1 = 0.0
-        pilot.auto_manual = aux[i][0]
+        pilot.auto_manual = auto[i][0]
         result['pilot'].append(pilot)
         
     result['act'] = []
-    cmds = data['Cntrl']['cmdCntrl'][()]
     for i in range( size ):
         act = Record()
         act.time = timestamp[i][0]
-        act.aileron = cmds[i][0]
-        act.elevator = cmds[i][1]
-        act.rudder = cmds[i][2]
-        act.throttle = cmds[i][3]
-        if act.throttle > 1.1:
-            act.throttle = 0
-        act.flaps = 0.0
+        act.aileron = roll[i][0]
+        act.elevator = pitch[i][0]
+        act.rudder = yaw[i][0]
+        act.throttle = motor[i][0]
+        act.flaps = flaps[i][0]
         act.gear = 0.0
         act.aux1 = 0.0
         result['act'].append(act)
                 
     result['ap'] = []
+    roll = data['/Control/refPhi_rad'][()]
+    pitch = data['/Control/refTheta_rad'][()]
+    vel = data['/Control/refV_ms'][()]
     for i in range( size ):
         ap = Record()
         ap.time = timestamp[i][0]
-        ap.master_switch = int(aux[i][0] > 0)
+        ap.master_switch = int(auto[i][0] > 0)
         ap.pilot_pass_through = int(0)
         ap.hdg = 0.0
-        ap.roll = inceptors[i][0] * 60.0
+        ap.roll = roll[i][0] * r2d
         ap.alt = 0.0
-        ap.pitch = inceptors[i][1] * 60.0
-        ap.speed = 23.0 * mps2kt
+        ap.pitch = pitch[i][0] * r2d
+        ap.speed = vel[i][0] * mps2kt
         ap.ground = 0.0
         result['ap'].append(ap)
 
     result['health'] = []
-    vcc = data['Fmu']['InputVoltage_V']
-    indxTest = data['Excite']['indxTest'][()]
-    exciteMode = data['Excite']['exciteMode'][()]
+    vcc = data['/Sensors/Fmu/Voltage/Input_V']
+    indxTest = data['/Mission/testID'][()]
+    exciteMode = data['/Mission/testSel'][()]
     for i in range( size ):
         health = Record()
         health.time = timestamp[i][0]
