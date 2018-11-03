@@ -222,7 +222,7 @@ def load(flight_dir, recalibrate=None):
                     pilot.gear = 0
                 elif pilot_mapping == 'APM2':
                     pilot.aileron = float(row['channel[0]'])
-                    pilot.elevator = float(row['channel[1]'])
+                    pilot.elevator = -float(row['channel[1]'])
                     pilot.throttle = float(row['channel[2]'])
                     pilot.rudder = float(row['channel[3]'])
                     pilot.gear = float(row['channel[4]'])
