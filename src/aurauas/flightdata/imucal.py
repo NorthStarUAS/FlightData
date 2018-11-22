@@ -36,12 +36,12 @@ class Calibration():
         try:
             name, ext = os.path.splitext(cal_file)
             if ext == '.json':
-                props_json.load(cal_file, config)
-                self.valid = True
-            elif ext == '.xml':
-                props_xml.load(cal_file, config)
-                self.valid = True
+                if props_json.load(cal_file, config):
+                    self.valid = True
+                else:
+                    return False
             else:
+                print('unknown file extension:', cal_file)
                 return False
         except:
             print(cal_file + ": load error:\n" + str(sys.exc_info()[1]))
