@@ -121,7 +121,7 @@ def load(h5_filename):
     vd = data['/Sensor-Processing/Baseline/INS/DownVelocity_ms'][()]
     roll = data['/Sensor-Processing/Baseline/INS/Roll_rad'][()]
     pitch = data['/Sensor-Processing/Baseline/INS/Pitch_rad'][()]
-    yaw = data['/Sensor-Processing/Baseline/INS/Yaw_rad'][()]
+    yaw = data['/Sensor-Processing/Baseline/INS/Heading_rad'][()]
     gbx = data['/Sensor-Processing/Baseline/INS/GyroXBias_rads'][()]
     gby = data['/Sensor-Processing/Baseline/INS/GyroYBias_rads'][()]
     gbz = data['/Sensor-Processing/Baseline/INS/GyroZBias_rads'][()]
