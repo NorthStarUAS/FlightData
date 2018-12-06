@@ -63,3 +63,6 @@ def load(path, recal_file=None):
         print('Unable to determine data log format (or path not valid):', path)
 
     return flight_data, flight_format
+
+def save(filename, data):
+    aura_csv.save_filter_result(filename, data)

@@ -303,9 +303,6 @@ def save_filter_result(filename, data_store):
     with open(filename, 'w') as csvfile:
         writer = csv.DictWriter( csvfile, fieldnames=keys )
         writer.writeheader()
-        for row in data[key]:
-            writer.writerow(row)
-            
         size = len(data_store.time)
         for i in range(size):
             row = dict()
