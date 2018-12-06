@@ -5,6 +5,7 @@ import math
 import os, sys
 join = os.path.join
 import numpy as np
+import datetime, calendar
 
 mps2kt = 1.94384
 r2d = 180.0 / math.pi
@@ -82,6 +83,16 @@ def load(h5_filename):
     ve = data['/Sensors/uBlox/EastVelocity_ms'][()]
     vd = data['/Sensors/uBlox/DownVelocity_ms'][()]
     sats = data['/Sensors/uBlox/NumberSatellites'][()]
+    year = data['/Sensors/uBlox/Year'][()]
+    month = data['/Sensors/uBlox/Month'][()]
+    day = data['/Sensors/uBlox/Day'][()]
+    hour = data['/Sensors/uBlox/Hour'][()]
+    minute = data['/Sensors/uBlox/Minute'][()]
+    second = data['/Sensors/uBlox/Second'][()]
+    d = datetime.datetime(year[0][0], month[0][0], day[0][0],
+                          hour[0][0], minute[0][0], second[0][0])
+    unixbase = calendar.timegm(d.timetuple()) - timestamp[0][0]
+
     for i in range( size ):
         lat = lat_rad[i][0] * r2d
         lon = lon_rad[i][0] * r2d
@@ -91,7 +102,7 @@ def load(h5_filename):
             last_gps_lon = lon
             gps_pt = Record()
             gps_pt.time = timestamp[i][0]
-            gps_pt.unix_sec = timestamp[i][0] # hack incrementing time stamp here
+            gps_pt.unix_sec = unixbase + timestamp[i][0]
             gps_pt.lat = lat
             gps_pt.lon = lon
             gps_pt.alt = alt[i][0]
@@ -201,16 +212,41 @@ def load(h5_filename):
 
     result['health'] = []
     vcc = data['/Sensors/Fmu/Voltage/Input_V']
-    indxTest = data['/Mission/testID'][()]
-    exciteMode = data['/Mission/testSel'][()]
     for i in range( size ):
         health = Record()
         health.time = timestamp[i][0]
         health.main_vcc = vcc[i][0]
-        health.test_index = indxTest[i][0]
-        health.excite_mode = exciteMode[i][0]
+        #health.test_index = indxTest[i][0]
+        #health.excite_mode = exciteMode[i][0]
         result['health'].append(health)
-        
+
+    result['event'] = []
+    socEngage = data['/Mission/socEngage'][()]
+    indxTest = data['/Mission/testID'][()]
+    exciteMode = data['/Mission/testSel'][()]
+    last_soc = 0
+    last_id = -1
+    last_excite = 0
+    for i in range( size ):
+        soc = socEngage[i][0]
+        test_id = indxTest[i][0]
+        excite = exciteMode[i][0]
+        if soc != last_soc:
+            event = Record()
+            event.time = timestamp[i][0]
+            if soc:
+                event.message = "SOC Engaged"
+            else:
+                event.message = "SOC Disengaged"
+            result['event'].append(event)
+            last_soc = soc
+        if test_id != last_id:
+            event = Record()
+            event.time = timestamp[i][0]
+            event.message = 'Test ID = %d' % test_id
+            result['event'].append(event)
+            last_id = test_id
+            
     dir = os.path.dirname(h5_filename)
     print('dir:', dir)
     
