@@ -2,7 +2,7 @@
 
 from setuptools import setup, find_packages
 
-setup(name='aura-flightdata',
+setup(name='aurauas-flightdata',
       version='1.0',
       description='Flight data management libs',
       author='Curtis L. Olson',
