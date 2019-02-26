@@ -1,5 +1,6 @@
 # load umn3 .h5 file data format
 
+import csv
 import h5py                     # dnf install python3-h5py
 import math
 import os, sys
@@ -9,6 +10,7 @@ import datetime, calendar
 
 mps2kt = 1.94384
 r2d = 180.0 / math.pi
+d2r = math.pi / 180.0
 
 # empty class we'll fill in with data members
 class Record(): pass
@@ -17,7 +19,8 @@ def load(h5_filename):
     # Name of .mat file that exists in the directory defined above and
     # has the flight_data and flight_info structures
     filepath = h5_filename
-
+    flight_dir = os.path.dirname(filepath)
+    
     # Load Flight Data: ## IMPORTANT to have the .mat file in the
     # flight_data and flight_info structures for this function ##
     data = h5py.File(filepath)
@@ -45,10 +48,25 @@ def load(h5_filename):
     hy = data['/Sensors/Fmu/Mpu9250/MagY_uT'][()].astype(float)
     hz = data['/Sensors/Fmu/Mpu9250/MagZ_uT'][()].astype(float)
     temp = data['/Sensors/Fmu/Mpu9250/Temperature_C'][()].astype(float)
+
+    # temporary fault modeling for a specific project
+    if '/Excitation/Fault_GyroBias_2/gyro_faultBias_rps' in data:
+        gx2 = data['/Excitation/Fault_GyroBias_2/gyro_faultBias_rps'][()].astype(float)
+    else:
+        gx2 = None
+    if '/Excitation/Fault_GyroBias_10/gyro_faultBias_rps' in data:
+        gx10 = data['/Excitation/Fault_GyroBias_10/gyro_faultBias_rps'][()].astype(float)
+    else:
+        gx10 = None
+        
     for i in range( size ):
         imu_pt = Record()
         imu_pt.time = timestamp[i][0]
         imu_pt.p = gx[i][0]
+        if not gx2 is None:
+            imu_pt.p -= gx2[i][0]
+        if not gx10 is None:
+            imu_pt.p -= gx10[i][0]
         imu_pt.q = gy[i][0]
         imu_pt.r = gz[i][0]
         imu_pt.ax = ax[i][0]
@@ -159,11 +177,47 @@ def load(h5_filename):
         nav.az_bias = abz[i][0]
         if abs(nav.lat) > 0.0001 and abs(nav.lon) > 0.0001:
             result['filter'].append(nav)
+            
+    # load filter (post process) records if they exist (for comparison
+    # purposes)
+    filter_post = os.path.join(flight_dir, "filter-post.csv")
+    if os.path.exists(filter_post):
+        print('Also loading:', filter_post, '(because it exists)')
+        result['filter_post'] = []
+        with open(filter_post, 'r') as ffilter:
+            reader = csv.DictReader(ffilter)
+            for row in reader:
+                lat = float(row['latitude_deg'])
+                lon = float(row['longitude_deg'])
+                if abs(lat) > 0.0001 and abs(lon) > 0.0001:
+                    nav = Record()
+                    nav.time = float(row['timestamp'])
+                    nav.lat = lat*d2r
+                    nav.lon = lon*d2r
+                    nav.alt = float(row['altitude_m'])
+                    nav.vn = float(row['vn_ms'])
+                    nav.ve = float(row['ve_ms'])
+                    nav.vd = float(row['vd_ms'])
+                    nav.phi = float(row['roll_deg'])*d2r
+                    nav.the = float(row['pitch_deg'])*d2r
+                    psi = float(row['heading_deg'])
+                    if psi > 180.0:
+                        psi = psi - 360.0
+                    if psi < -180.0:
+                        psi = psi + 360.0
+                    nav.psi = psi*d2r
+                    nav.p_bias = float(row['p_bias'])
+                    nav.q_bias = float(row['q_bias'])
+                    nav.r_bias = float(row['r_bias'])
+                    nav.ax_bias = float(row['ax_bias'])
+                    nav.ay_bias = float(row['ay_bias'])
+                    nav.az_bias = float(row['az_bias'])
+                    result['filter_post'].append(nav)
 
     result['pilot'] = []
-    roll = data['/Control/cmdRoll_rads'][()]
-    pitch = data['/Control/cmdPitch_rads'][()]
-    yaw = data['/Control/cmdYaw_rads'][()]
+    roll = data['/Control/cmdRoll_rps'][()]
+    pitch = data['/Control/cmdPitch_rps'][()]
+    yaw = data['/Control/cmdYaw_rps'][()]
     motor = data['/Control/cmdMotor_nd'][()]
     flaps = data['/Control/cmdFlap_nd'][()]
     auto = data['/Mission/socEngage'][()]
