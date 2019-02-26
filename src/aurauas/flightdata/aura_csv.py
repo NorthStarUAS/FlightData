@@ -307,20 +307,20 @@ def save_filter_result(filename, data_store):
         for i in range(size):
             row = dict()
             row['timestamp'] = '%.4f' % data_store.time[i]
-            row['latitude_deg'] = '%.10f' % data_store.lat[i]*180.0/math.pi
-            row['longitude_deg'] = '%.10f' % data_store.lon[i]*180.0/math.pi
+            row['latitude_deg'] = '%.10f' % (data_store.lat[i]*180.0/math.pi)
+            row['longitude_deg'] = '%.10f' % (data_store.lon[i]*180.0/math.pi)
             row['altitude_m'] = '%.2f' % data_store.alt[i]
             row['vn_ms'] = '%.4f' % data_store.vn[i]
             row['ve_ms'] = '%.4f' % data_store.ve[i]
             row['vd_ms'] = '%.4f' % data_store.vd[i]
-            row['roll_deg'] = '%.2f' % data_store.phi[i]*180.0/math.pi
-            row['pitch_deg'] = '%.2f' % data_store.the[i]*180.0/math.pi
-            row['heading_deg'] = '%.2f' % data_store.psi[i]*180.0/math.pi
-            row['p_bias'] = '%.4f' % data_store.p_bias
-            row['q_bias'] = '%.4f' % data_store.q_bias
-            row['r_bias'] = '%.4f' % data_store.r_bias
-            row['ax_bias'] = '%.3f' % data_store.ax_bias
-            row['ay_bias'] = '%.3f' % data_store.ay_bias
-            row['az_bias'] = '%.3f' % data_store.az_bias
+            row['roll_deg'] = '%.2f' % (data_store.phi[i]*180.0/math.pi)
+            row['pitch_deg'] = '%.2f' % (data_store.the[i]*180.0/math.pi)
+            row['heading_deg'] = '%.2f' % (data_store.psi[i]*180.0/math.pi)
+            row['p_bias'] = '%.4f' % data_store.p_bias[i]
+            row['q_bias'] = '%.4f' % data_store.q_bias[i]
+            row['r_bias'] = '%.4f' % data_store.r_bias[i]
+            row['ax_bias'] = '%.3f' % data_store.ax_bias[i]
+            row['ay_bias'] = '%.3f' % data_store.ay_bias[i]
+            row['az_bias'] = '%.3f' % data_store.az_bias[i]
             row['status'] = '%d' % 0
             writer.writerow(row)
