@@ -72,7 +72,7 @@ def load(h5_filename):
         imu_pt.ax = ax[i][0]
         imu_pt.ay = ay[i][0]
         imu_pt.az = az[i][0]
-        aircraft = 'Mjolner'
+        aircraft = 'none'
         if aircraft == 'Mjolner':
             affine = np.array(
                 [[ 0.018620589,   0.0003888403, -0.0003962612, -0.229103659 ],
