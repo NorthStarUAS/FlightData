@@ -1,5 +1,6 @@
 # load sentera csv format
 
+import csv
 import fileinput
 import math
 import numpy as np
@@ -28,9 +29,9 @@ def load(flight_dir):
     filter_data = []
 
     # load imu/gps data files
-    imu_file = flight_dir + "/imu.csv"
-    gps_file = flight_dir + "/gps.csv"
-    filter_post = flight_dir + "/filter-post-ins.txt"
+    imu_file = os.path.join(flight_dir, "imu.csv")
+    gps_file = os.path.join(flight_dir, "gps.csv")
+    filter_post = os.path.join(flight_dir, "filter-post-ins.txt")
     
     # calibration by plotting and eye-balling (just finding center point, no
     # normalization cooked into calibration.)
@@ -97,110 +98,66 @@ def load(flight_dir):
     print(mag_affine)
 
     result['imu'] = []
-    fimu = fileinput.input(imu_file)
-    for line in fimu:
-        #print line
-        if not re.search('Time', line):
-            tokens = line.split(',')
-            #print len(tokens)
-            if len(tokens) == 11 and isFloat(tokens[10]):
-                #print '"' + tokens[10] + '"'
-                (time, p, q, r, ax, ay, az, hx, hy, hz, temp) = tokens
-                # remap axis before applying mag calibration
-                p = -float(p)
-                q =  float(q)
-                r = -float(r)
-                ax = -float(ax)*g
-                ay =  float(ay)*g
-                az = -float(az)*g
-                hx = -float(hx)
-                hy =  float(hy)
-                hz = -float(hz)
-                mag_orientation = 'random1'
-                if mag_orientation == 'older':
-                    #hx_new = hx_func(float(hx))
-                    #hy_new = hy_func(float(hy))
-                    #hz_new = hz_func(float(hz))
-                    s = [hx, hy, hz]
-                elif mag_orientation == 'newer':
-                    # remap for 2016-05-12 (0004) data set
-                    #hx_new = hx_func(float(-hy))
-                    #hy_new = hy_func(float(-hx))
-                    #hz_new = hz_func(float(-hz))
-                    s = [-hy, -hx, -hz]
-                elif mag_orientation == 'random1':
-                    # remap for 2016-05-12 (0004) data set
-                    #hx_new = hx_func(float(-hy))
-                    #hy_new = hy_func(float(-hx))
-                    #hz_new = hz_func(float(-hz))
-                    s = [-hy, -hx, hz]
-                # mag calibration mapping via mag_affine matrix
-                hs = np.hstack( [s, 1.0] )
-                hf = np.dot(mag_affine, hs)
-                #print hf[:3]
-                #norm = np.linalg.norm([hx_new, hy_new, hz_new])
-                #hx_new /= norm
-                #hy_new /= norm
-                #hz_new /= norm
-                
-                imu = Record()
-                imu.time = float(time)/1000000.0
-                imu.p = p
-                imu.q = q
-                imu.r = r
-                imu.ax = ax
-                imu.ay = ay
-                imu.az = az
-                do_mag_transform = True
-                if do_mag_transform:
-                    imu.hx = hf[0]
-                    imu.hy = hf[1]
-                    imu.hz = hf[2]
+    with open(imu_file, 'r') as fimu:
+        reader = csv.DictReader(fimu)
+        for row in reader:
+            # print(row)
+            imu = Record()
+            try:
+                imu.time = float(row['Time Stamp (ns since boot)']) / 1000000000.0
+                imu.p = float(row['xGyro (rad/s)'])
+                imu.q = float(row['yGyro (rad/s)'])
+                imu.r = float(row['zGyro (rad/s)'])
+                imu.ax = float(row[' xAccel (g)'])*g
+                imu.ay = float(row[' yAccel (g)'])*g
+                imu.az = float(row[' zAccel (g)'])*g
+                imu.hx = float(row[' xMag (uT)']) # not logged
+                imu.hy = float(row[' xMag (uT)']) # not logged
+                imu.hz = float(row[' xMag (uT)']) # not logged
+                temp = row[' Temp (C)']
+                if temp != 'N/A':
+                    imu.temp = float(row[' Temp (C)']) # not logged
                 else:
-                    imu.hx = s[0]
-                    imu.hy = s[1]
-                    imu.hz = s[2]
-                #float(hf[0]), float(hf[1]), float(hf[2]),
-                imu.temp = float(temp)
+                    imu.temp = 0.0
                 result['imu'].append( imu )
+            except:
+                print('[IMU] failed to parse incomplete row:', row) 
 
     result['gps'] = []
-    fgps = fileinput.input(gps_file)
-    for line in fgps:
-        if not re.search('Timestamp', line):
-            # print line
-            tokens = line.split(',')
-            # print 'gps tokens:', len(tokens)
-            if len(tokens) == 14:
-                (time, itow, ecefx, ecefy, ecefz, ecefvx, ecefvy, ecefvz,
-                 fixtype, posacc, spdacc, posdop, numsvs, flags) = tokens
-            elif len(tokens) == 19:
-                (time, itow, lat, lon, alt, ecefx, ecefy, ecefz,
-                 ecefvx, ecefvy, ecefvz,
-                 fixtype, posacc, spdacc, posdop, numsvs, flags,
-                 diff_status, carrier_status) = tokens
-                
+    with open(gps_file, 'r') as fgps:
+        reader = csv.DictReader(fgps)
+        for row in reader:
+            #print(row)
+            gps = Record()
+            gps.time = float(row['Timestamp (ns since boot)']) / 1000000000.0
+            gps.unix_sec = gps.time # hack
+            #gps.lat = float(row['Lat (deg)'])
+            #gps.lon = float(row['Lon (deg)'])
+            #gps.alt = float(row['Alt Geoid EGM 96 (m)'])
+            ecefx = float(row['ecefX (cm)'])
+            ecefy = float(row['ecefY (cm)'])
+            ecefz = float(row['ecefZ (cm)'])
+            ecefvx = float(row['ecefVX (cm/s)'])
+            ecefvy = float(row['ecefVY (cm/s)'])
+            ecefvz = float(row['ecefVZ (cm/s)'])
+            gps.sats = int(row['Num SVs Used'])
             # wgs84 position
             pos_source = 'llh'  # 'llh' or 'ecef'
             llh = navpy.ecef2lla([float(ecefx)/100.0,
                                   float(ecefy)/100.0,
                                   float(ecefz)/100.0], "deg")
+            gps.lat = llh[0]
+            gps.lon = llh[1]
+            gps.alt = llh[2]
             # velocity
             ned = navpy.ecef2ned([float(ecefvx)/100.0,
                                   float(ecefvy)/100.0,
                                   float(ecefvz)/100.0],
                                  llh[0], llh[1], llh[2])
-            if int(numsvs) >= 4:
-                gps = Record()
-                gps.time = float(time)/1000000.0
-                #gps.status = int(status)
-                gps.unix_sec = float(time)/1000000.0 # make filter happy
-                gps.lat = float(lat)
-                gps.lon = float(lon)
-                gps.alt = float(alt)
-                gps.vn = ned[0]
-                gps.ve = ned[1]
-                gps.vd = ned[2]
+            gps.vn = ned[0]
+            gps.ve = ned[1]
+            gps.vd = ned[2]
+            if int(row['Fix Type']) == 3:
                 result['gps'].append(gps)
 
     result['filter'] = []
