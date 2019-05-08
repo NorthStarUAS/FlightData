@@ -274,11 +274,26 @@ def load(flight_dir, recalibrate=None):
                 health = Record()
                 health.time = float(row['timestamp'])
                 health.load_avg = float(row['system_load_avg'])
-                health.avionics_vcc = float(row['avionics_vcc'])
-                health.main_vcc = float(row['main_vcc'])
-                health.cell_vcc = float(row['cell_vcc'])
-                health.main_amps = float(row['main_amps'])
-                health.main_mah = float(row['total_mah'])
+                if 'avionics_vcc' in row:
+                    health.avionics_vcc = float(row['avionics_vcc'])
+                elif 'board_vcc' in row:
+                    health.avionics_vcc = float(row['board_vcc'])
+                if 'main_vcc' in row:
+                    health.main_vcc = float(row['main_vcc'])
+                elif 'extern_volts' in row:
+                    health.main_vcc = float(row['extern_volts'])
+                if 'cell_vcc' in row:
+                    health.cell_vcc = float(row['cell_vcc'])
+                elif 'extern_cell_volts' in row:
+                    health.cell_vcc = float(row['extern_cell_volts'])
+                if 'main_amps' in row:
+                    health.main_amps = float(row['main_amps'])
+                elif 'extern_amps' in row:
+                    health.main_amps = float(row['extern_amps'])
+                if 'total_mah' in row:
+                    health.main_mah = float(row['total_mah'])
+                elif 'extern_current_mah' in row:
+                    health.main_mah = float(row['extern_current_mah'])
                 result['health'].append(health)
 
     cal = imucal.Calibration()
