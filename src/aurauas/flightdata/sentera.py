@@ -129,36 +129,39 @@ def load(flight_dir):
         for row in reader:
             #print(row)
             gps = Record()
-            gps.time = float(row['Timestamp (ns since boot)']) / 1000000000.0
-            gps.unix_sec = gps.time # hack
-            #gps.lat = float(row['Lat (deg)'])
-            #gps.lon = float(row['Lon (deg)'])
-            #gps.alt = float(row['Alt Geoid EGM 96 (m)'])
-            ecefx = float(row['ecefX (cm)'])
-            ecefy = float(row['ecefY (cm)'])
-            ecefz = float(row['ecefZ (cm)'])
-            ecefvx = float(row['ecefVX (cm/s)'])
-            ecefvy = float(row['ecefVY (cm/s)'])
-            ecefvz = float(row['ecefVZ (cm/s)'])
-            gps.sats = int(row['Num SVs Used'])
-            # wgs84 position
-            pos_source = 'llh'  # 'llh' or 'ecef'
-            llh = navpy.ecef2lla([float(ecefx)/100.0,
-                                  float(ecefy)/100.0,
-                                  float(ecefz)/100.0], "deg")
-            gps.lat = llh[0]
-            gps.lon = llh[1]
-            gps.alt = llh[2]
-            # velocity
-            ned = navpy.ecef2ned([float(ecefvx)/100.0,
-                                  float(ecefvy)/100.0,
-                                  float(ecefvz)/100.0],
-                                 llh[0], llh[1], llh[2])
-            gps.vn = ned[0]
-            gps.ve = ned[1]
-            gps.vd = ned[2]
-            if int(row['Fix Type']) == 3:
-                result['gps'].append(gps)
+            try:
+                gps.time = float(row['Timestamp (ns since boot)']) / 1000000000.0
+                gps.unix_sec = gps.time # hack
+                #gps.lat = float(row['Lat (deg)'])
+                #gps.lon = float(row['Lon (deg)'])
+                #gps.alt = float(row['Alt Geoid EGM 96 (m)'])
+                ecefx = float(row['ecefX (cm)'])
+                ecefy = float(row['ecefY (cm)'])
+                ecefz = float(row['ecefZ (cm)'])
+                ecefvx = float(row['ecefVX (cm/s)'])
+                ecefvy = float(row['ecefVY (cm/s)'])
+                ecefvz = float(row['ecefVZ (cm/s)'])
+                gps.sats = int(row['Num SVs Used'])
+                # wgs84 position
+                pos_source = 'llh'  # 'llh' or 'ecef'
+                llh = navpy.ecef2lla([float(ecefx)/100.0,
+                                      float(ecefy)/100.0,
+                                      float(ecefz)/100.0], "deg")
+                gps.lat = llh[0]
+                gps.lon = llh[1]
+                gps.alt = llh[2]
+                # velocity
+                ned = navpy.ecef2ned([float(ecefvx)/100.0,
+                                      float(ecefvy)/100.0,
+                                      float(ecefvz)/100.0],
+                                     llh[0], llh[1], llh[2])
+                gps.vn = ned[0]
+                gps.ve = ned[1]
+                gps.vd = ned[2]
+                if int(row['Fix Type']) == 3:
+                    result['gps'].append(gps)
+            except:
+                print('[GPS] failed to parse incomplete row:', row) 
 
     result['filter'] = []
     # load filter (post process) records if they exist (for comparison
