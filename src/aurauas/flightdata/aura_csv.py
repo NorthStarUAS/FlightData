@@ -11,7 +11,7 @@ from . import imucal
 d2r = math.pi / 180.0
 
 # empty class we'll fill in with data members
-class Record: pass
+# class Record: pass (deprecated)
 
 def load(flight_dir, recalibrate=None):
     result = {}
@@ -68,12 +68,13 @@ def load(flight_dir, recalibrate=None):
     with open(event_file, 'r') as fevent:
         reader = csv.DictReader(fevent)
         for row in reader:
-            event = Record()
-            event.time = float(row['timestamp'])
-            event.message = row['message']
-            if 'Aura3' in event.message:
+            event = {
+                'time': float(row['timestamp']),
+                'message': row['message']
+            }
+            if 'Aura3' in event['message']:
                 pilot_mapping = 'Aura3'
-            if 'APM2' in event.message:
+            elif 'APM2' in event['message']:
                 pilot_mapping = 'APM2'
             result['event'].append( event )
 
@@ -81,18 +82,19 @@ def load(flight_dir, recalibrate=None):
     with open(imu_file, 'r') as fimu:
         reader = csv.DictReader(fimu)
         for row in reader:
-            imu = Record()
-            imu.time = float(row['timestamp'])
-            imu.p = float(row['p_rad_sec'])
-            imu.q = float(row['q_rad_sec'])
-            imu.r = float(row['r_rad_sec'])
-            imu.ax = float(row['ax_mps_sec'])
-            imu.ay = float(row['ay_mps_sec'])
-            imu.az = float(row['az_mps_sec'])
-            imu.hx = float(row['hx'])
-            imu.hy = float(row['hy'])
-            imu.hz = float(row['hz'])
-            imu.temp = float(row['temp_C'])
+            imu = {
+                'time': float(row['timestamp']),
+                'p': float(row['p_rad_sec']),
+                'q': float(row['q_rad_sec']),
+                'r': float(row['r_rad_sec']),
+                'ax': float(row['ax_mps_sec']),
+                'ay': float(row['ay_mps_sec']),
+                'az': float(row['az_mps_sec']),
+                'hx': float(row['hx']),
+                'hy': float(row['hy']),
+                'hz': float(row['hz']),
+                'temp': float(row['temp_C'])
+            }
             result['imu'].append( imu )
 
     result['gps'] = []
@@ -107,16 +109,17 @@ def load(flight_dir, recalibrate=None):
             time = float(row['timestamp'])
             sats = int(row['satellites'])
             if sats >= 5 and time > last_time:
-                gps = Record()
-                gps.time = time
-                gps.unix_sec = float(row['unix_time_sec'])
-                gps.lat = float(row['latitude_deg'])
-                gps.lon = float(row['longitude_deg'])
-                gps.alt = float(row['altitude_m'])
-                gps.vn = float(row['vn_ms'])
-                gps.ve = float(row['ve_ms'])
-                gps.vd = float(row['vd_ms'])
-                gps.sats = sats
+                gps = {
+                    'time': time,
+                    'unix_sec': float(row['unix_time_sec']),
+                    'lat': float(row['latitude_deg']),
+                    'lon': float(row['longitude_deg']),
+                    'alt': float(row['altitude_m']),
+                    'vn': float(row['vn_ms']),
+                    've': float(row['ve_ms']),
+                    'vd': float(row['vd_ms']),
+                    'sats': sats
+                }
                 result['gps'].append(gps)
             last_time = time
 
@@ -124,16 +127,17 @@ def load(flight_dir, recalibrate=None):
     with open(air_file, 'r') as fair:
         reader = csv.DictReader(fair)
         for row in reader:
-            air = Record()
-            air.time = float(row['timestamp'])
-            air.static_press = float(row['pressure_mbar'])
-            air.diff_press = 0.0    # not directly available in aura flight log
-            air.temp = float(row['temp_C'])
-            air.airspeed = float(row['airspeed_smoothed_kt'])
-            air.alt_press = float(row['altitude_smoothed_m'])
-            air.alt_true = float(row['altitude_true_m'])
-            air.wind_dir = float(row['wind_dir_deg'])
-            air.wind_speed = float(row['wind_speed_kt'])
+            air = {
+                'time': float(row['timestamp']),
+                'static_press': float(row['pressure_mbar']),
+                'diff_press': 0.0, # not directly available in aura flight log
+                'temp': float(row['temp_C']),
+                'airspeed': float(row['airspeed_smoothed_kt']),
+                'alt_press': float(row['altitude_smoothed_m']),
+                'alt_true': float(row['altitude_true_m']),
+                'wind_dir': float(row['wind_dir_deg']),
+                'wind_speed': float(row['wind_speed_kt'])
+            }
             result['air'].append( air )
 
     # load filter records if they exist (for comparison purposes)
@@ -143,29 +147,30 @@ def load(flight_dir, recalibrate=None):
         for row in reader:
             lat = float(row['latitude_deg'])
             lon = float(row['longitude_deg'])
+            psi_deg = float(row['heading_deg'])
+            if psi_deg > 180.0:
+                psi_deg = psi_deg - 360.0
+            if psi_deg < -180.0:
+                psi_deg = psi_deg + 360.0
             if abs(lat) > 0.0001 and abs(lon) > 0.0001:
-                nav = Record()
-                nav.time = float(row['timestamp'])
-                nav.lat = lat*d2r
-                nav.lon = lon*d2r
-                nav.alt = float(row['altitude_m'])
-                nav.vn = float(row['vn_ms'])
-                nav.ve = float(row['ve_ms'])
-                nav.vd = float(row['vd_ms'])
-                nav.phi = float(row['roll_deg'])*d2r
-                nav.the = float(row['pitch_deg'])*d2r
-                psi = float(row['heading_deg'])
-                if psi > 180.0:
-                    psi = psi - 360.0
-                if psi < -180.0:
-                    psi = psi + 360.0
-                nav.psi = psi*d2r
-                nav.p_bias = float(row['p_bias'])
-                nav.q_bias = float(row['q_bias'])
-                nav.r_bias = float(row['r_bias'])
-                nav.ax_bias = float(row['ax_bias'])
-                nav.ay_bias = float(row['ay_bias'])
-                nav.az_bias = float(row['az_bias'])
+                nav = {
+                    'time': float(row['timestamp']),
+                    'lat': lat*d2r,
+                    'lon': lon*d2r,
+                    'alt': float(row['altitude_m']),
+                    'vn': float(row['vn_ms']),
+                    've': float(row['ve_ms']),
+                    'vd': float(row['vd_ms']),
+                    'phi': float(row['roll_deg'])*d2r,
+                    'the': float(row['pitch_deg'])*d2r,
+                    'psi': psi_deg*d2r,
+                    'p_bias': float(row['p_bias']),
+                    'q_bias': float(row['q_bias']),
+                    'r_bias': float(row['r_bias']),
+                    'ax_bias': float(row['ax_bias']),
+                    'ay_bias': float(row['ay_bias']),
+                    'az_bias': float(row['az_bias'])
+                }
                 result['filter'].append(nav)
 
     # load filter (post process) records if they exist (for comparison
@@ -177,29 +182,30 @@ def load(flight_dir, recalibrate=None):
             for row in reader:
                 lat = float(row['latitude_deg'])
                 lon = float(row['longitude_deg'])
+                psi_deg = float(row['heading_deg'])
+                if psi_deg > 180.0:
+                    psi_deg = psi_deg - 360.0
+                if psi < -180.0:
+                    psi_deg = psi_deg + 360.0
                 if abs(lat) > 0.0001 and abs(lon) > 0.0001:
-                    nav = Record()
-                    nav.time = float(row['timestamp'])
-                    nav.lat = lat*d2r
-                    nav.lon = lon*d2r
-                    nav.alt = float(row['altitude_m'])
-                    nav.vn = float(row['vn_ms'])
-                    nav.ve = float(row['ve_ms'])
-                    nav.vd = float(row['vd_ms'])
-                    nav.phi = float(row['roll_deg'])*d2r
-                    nav.the = float(row['pitch_deg'])*d2r
-                    psi = float(row['heading_deg'])
-                    if psi > 180.0:
-                        psi = psi - 360.0
-                    if psi < -180.0:
-                        psi = psi + 360.0
-                    nav.psi = psi*d2r
-                    nav.p_bias = float(row['p_bias'])
-                    nav.q_bias = float(row['q_bias'])
-                    nav.r_bias = float(row['r_bias'])
-                    nav.ax_bias = float(row['ax_bias'])
-                    nav.ay_bias = float(row['ay_bias'])
-                    nav.az_bias = float(row['az_bias'])
+                    nav = {
+                        'time': float(row['timestamp']),
+                        'lat': lat*d2r,
+                        'lon': lon*d2r,
+                        'alt': float(row['altitude_m']),
+                        'vn': float(row['vn_ms']),
+                        've': float(row['ve_ms']),
+                        'vd': float(row['vd_ms']),
+                        'phi': float(row['roll_deg'])*d2r,
+                        'the': float(row['pitch_deg'])*d2r,
+                        'psi': psi_deg*d2r,
+                        'p_bias': float(row['p_bias']),
+                        'q_bias': float(row['q_bias']),
+                        'r_bias': float(row['r_bias']),
+                        'ax_bias': float(row['ax_bias']),
+                        'ay_bias': float(row['ay_bias']),
+                        'az_bias': float(row['az_bias'])
+                    }
                     result['filter_post'].append(nav)
 
     if os.path.exists(pilot_file):
@@ -208,28 +214,32 @@ def load(flight_dir, recalibrate=None):
         with open(pilot_file, 'r') as fpilot:
             reader = csv.DictReader(fpilot)
             for row in reader:
-                pilot = Record()
-                pilot.time = float(row['timestamp'])
                 if pilot_mapping == 'Aura3':
-                    pilot.auto_manual = float(row['channel[0]'])
-                    pilot.throttle_safety = float(row['channel[1]'])
-                    pilot.throttle = float(row['channel[2]'])
-                    pilot.aileron = float(row['channel[3]'])
-                    pilot.elevator = float(row['channel[4]'])
-                    pilot.rudder = float(row['channel[5]'])
-                    pilot.flaps = float(row['channel[6]'])
-                    pilot.aux1 = float(row['channel[7]'])
-                    pilot.gear = 0
+                    pilot = {
+                        'time': float(row['timestamp']),
+                        'auto_manual': float(row['channel[0]']),
+                        'throttle_safety': float(row['channel[1]']),
+                        'throttle': float(row['channel[2]']),
+                        'aileron': float(row['channel[3]']),
+                        'elevator': float(row['channel[4]']),
+                        'rudder': float(row['channel[5]']),
+                        'flaps': float(row['channel[6]']),
+                        'aux1': float(row['channel[7]']),
+                        'gear': 0
+                    }
                 elif pilot_mapping == 'APM2':
-                    pilot.aileron = float(row['channel[0]'])
-                    pilot.elevator = -float(row['channel[1]'])
-                    pilot.throttle = float(row['channel[2]'])
-                    pilot.rudder = float(row['channel[3]'])
-                    pilot.gear = float(row['channel[4]'])
-                    pilot.flaps = float(row['channel[5]'])
-                    pilot.aux1 = float(row['channel[6]'])
-                    pilot.auto_manual = float(row['channel[7]'])
-                    pilot.throttle_safety = 0.0
+                    pilot = {
+                        'time': float(row['timestamp']),
+                        'aileron': float(row['channel[0]']),
+                        'elevator': -float(row['channel[1]']),
+                        'throttle': float(row['channel[2]']),
+                        'rudder': float(row['channel[3]']),
+                        'gear': float(row['channel[4]']),
+                        'flaps': float(row['channel[5]']),
+                        'aux1': float(row['channel[6]']),
+                        'auto_manual': float(row['channel[7]']),
+                        'throttle_safety': 0.0
+                    }
                 result['pilot'].append(pilot)
 
     if os.path.exists(act_file):
@@ -237,16 +247,17 @@ def load(flight_dir, recalibrate=None):
         with open(act_file, 'r') as fact:
             reader = csv.DictReader(fact)
             for row in reader:
-                act = Record()
-                act.time = float(row['timestamp'])
-                act.aileron = float(row['aileron_norm'])
-                act.elevator = float(row['elevator_norm'])
-                act.throttle = float(row['throttle_norm'])
-                act.rudder = float(row['rudder_norm'])
-                act.gear = float(row['channel5_norm'])
-                act.flaps = float(row['flaps_norm'])
-                act.aux1 = float(row['channel7_norm'])
-                act.auto_manual = float(row['channel8_norm'])
+                act = {
+                    'time': float(row['timestamp']),
+                    'aileron': float(row['aileron_norm']),
+                    'elevator': float(row['elevator_norm']),
+                    'throttle': float(row['throttle_norm']),
+                    'rudder': float(row['rudder_norm']),
+                    'gear': float(row['channel5_norm']),
+                    'flaps': float(row['flaps_norm']),
+                    'aux1': float(row['channel7_norm']),
+                    'auto_manual': float(row['channel8_norm'])
+                }
                 result['act'].append(act)
 
     if os.path.exists(ap_file):
@@ -254,16 +265,17 @@ def load(flight_dir, recalibrate=None):
         with open(ap_file, 'r') as fap:
             reader = csv.DictReader(fap)
             for row in reader:
-                ap = Record()
-                ap.time = float(row['timestamp'])
-                ap.master_switch = int(row['master_switch'])
-                ap.pilot_pass_through = int(row['pilot_pass_through'])
-                ap.hdg = float(row['groundtrack_deg'])
-                ap.roll = float(row['roll_deg'])
-                ap.alt = float(row['altitude_msl_ft'])
-                ap.pitch = float(row['pitch_deg'])
-                ap.speed = float(row['airspeed_kt'])
-                ap.ground = float(row['altitude_ground_m'])
+                ap = {
+                    'time': float(row['timestamp']),
+                    'master_switch': int(row['master_switch']),
+                    'pilot_pass_through': int(row['pilot_pass_through']),
+                    'hdg': float(row['groundtrack_deg']),
+                    'roll': float(row['roll_deg']),
+                    'alt': float(row['altitude_msl_ft']),
+                    'pitch': float(row['pitch_deg']),
+                    'speed': float(row['airspeed_kt']),
+                    'ground': float(row['altitude_ground_m'])
+                }
                 result['ap'].append(ap)
 
     if os.path.exists(health_file):
@@ -271,29 +283,30 @@ def load(flight_dir, recalibrate=None):
         with open(health_file, 'r') as fhealth:
             reader = csv.DictReader(fhealth)
             for row in reader:
-                health = Record()
-                health.time = float(row['timestamp'])
-                health.load_avg = float(row['system_load_avg'])
+                health = {
+                    'time': float(row['timestamp']),
+                    'load_avg': float(row['system_load_avg'])
+                }
                 if 'avionics_vcc' in row:
-                    health.avionics_vcc = float(row['avionics_vcc'])
+                    health['avionics_vcc'] = float(row['avionics_vcc'])
                 elif 'board_vcc' in row:
-                    health.avionics_vcc = float(row['board_vcc'])
+                    health['avionics_vcc'] = float(row['board_vcc'])
                 if 'main_vcc' in row:
-                    health.main_vcc = float(row['main_vcc'])
+                    health['main_vcc'] = float(row['main_vcc'])
                 elif 'extern_volts' in row:
-                    health.main_vcc = float(row['extern_volts'])
+                    health['main_vcc'] = float(row['extern_volts'])
                 if 'cell_vcc' in row:
-                    health.cell_vcc = float(row['cell_vcc'])
+                    health['cell_vcc'] = float(row['cell_vcc'])
                 elif 'extern_cell_volts' in row:
-                    health.cell_vcc = float(row['extern_cell_volts'])
+                    health['cell_vcc'] = float(row['extern_cell_volts'])
                 if 'main_amps' in row:
-                    health.main_amps = float(row['main_amps'])
+                    health['main_amps'] = float(row['main_amps'])
                 elif 'extern_amps' in row:
-                    health.main_amps = float(row['extern_amps'])
+                    health['main_amps'] = float(row['extern_amps'])
                 if 'total_mah' in row:
-                    health.main_mah = float(row['total_mah'])
+                    health['main_mah'] = float(row['total_mah'])
                 elif 'extern_current_mah' in row:
-                    health.main_mah = float(row['extern_current_mah'])
+                    health['main_mah'] = float(row['extern_current_mah'])
                 result['health'].append(health)
 
     cal = imucal.Calibration()

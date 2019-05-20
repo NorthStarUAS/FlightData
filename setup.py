@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(name='aurauas-flightdata',
-      version='1.0',
+      version='1.1',
       description='Flight data management libs',
       author='Curtis L. Olson',
       author_email='curtolson@flightgear.org',

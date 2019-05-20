@@ -138,62 +138,66 @@ def load(mat_filename):
         #hf = np.dot(mag_affine, s)
         hf = s
 
-        imu_pt = Record()
-        imu_pt.time = float(t[k])
-        imu_pt.p = float(p)
-        imu_pt.q = float(q)
-        imu_pt.r = float(r)
-        imu_pt.ax = float(ax)
-        imu_pt.ay = float(ay)
-        imu_pt.az = float(az)
-        #imu_pt.hx = hx
-        #imu_pt.hy = hy
-        #imu_pt.hz = hz
-        imu_pt.hx = float(hf[0])
-        imu_pt.hy = float(hf[1])
-        imu_pt.hz = float(hf[2])
-        imu_pt.temp = 15.0
+        imu_pt = {
+            'time': float(t[k]),
+            'p': float(p),
+            'q': float(q),
+            'r': float(r),
+            'ax': float(ax),
+            'ay': float(ay),
+            'az': float(az),
+            #'hx': hx,
+            #'hy': hy,
+            #'hz': hz,
+            'hx': float(hf[0]),
+            'hy': float(hf[1]),
+            'hz': float(hf[2]),
+            'temp': 15.0
+        }
         result['imu'].append(imu_pt)
 
         if abs(alt[k] - last_gps_alt) > 0.0001:
             last_gps_alt = alt[k]
-            gps_pt = Record()
-            gps_pt.time = float(t[k])
-            #gps_pt.status = int(status)
-            gps_pt.unix_sec = float(t[k])
-            gps_pt.lat = float(lat[k])
-            gps_pt.lon = float(lon[k])
-            gps_pt.alt = float(alt[k])
-            gps_pt.vn = float(vn[k])
-            gps_pt.ve = float(ve[k])
-            gps_pt.vd = float(vd[k])
-            gps_pt.sats = 8     # force a reasonable value (not logged?)
+            gps_pt = {
+                'time': float(t[k]),
+                #'status': int(status),
+                'unix_sec': float(t[k]),
+                'lat': float(lat[k]),
+                'lon': float(lon[k]),
+                'alt': float(alt[k]),
+                'vn': float(vn[k]),
+                've': float(ve[k]),
+                'vd': float(vd[k]),
+                'sats': 8     # force a reasonable value (not logged)
+            }
             result['gps'].append(gps_pt)
 
-        air_pt = Record()
-        air_pt.time = float(t[k])
-        air_pt.airspeed = float(flight_data.ias[k]*mps2kt)
-        air_pt.altitude = float(flight_data.h[k])
-        air_pt.alt_true = float(flight_data.navalt[k])
+        air_pt = {
+            'time': float(t[k]),
+            'airspeed': float(flight_data.ias[k]*mps2kt),
+            'altitude': float(flight_data.h[k]),
+            'alt_true': float(flight_data.navalt[k])
+        }
         result['air'].append(air_pt)
         
-        nav = Record()
-        nav.time = float(t[k])
-        nav.lat = float(flight_data.navlat[k])
-        nav.lon = float(flight_data.navlon[k])
-        nav.alt = float(flight_data.navalt[k])
-        nav.vn = float(flight_data.navvn[k])
-        nav.ve = float(flight_data.navve[k])
-        nav.vd = float(flight_data.navvd[k])
-        nav.phi = float(flight_data.phi[k])
-        nav.the = float(flight_data.theta[k])
-        nav.psi = float(flight_data.psi[k])
-        nav.p_bias = float(flight_data.p_bias[k])
-        nav.q_bias = float(flight_data.q_bias[k])
-        nav.r_bias = float(flight_data.r_bias[k])
-        nav.ax_bias = float(flight_data.ax_bias[k])
-        nav.ay_bias = float(flight_data.ay_bias[k])
-        nav.az_bias = float(flight_data.az_bias[k])
+        nav = {
+            'time': float(t[k]),
+            'lat': float(flight_data.navlat[k]),
+            'lon': float(flight_data.navlon[k]),
+            'alt': float(flight_data.navalt[k]),
+            'vn': float(flight_data.navvn[k]),
+            've': float(flight_data.navve[k]),
+            'vd': float(flight_data.navvd[k]),
+            'phi': float(flight_data.phi[k]),
+            'the': float(flight_data.theta[k]),
+            'psi': float(flight_data.psi[k]),
+            'p_bias': float(flight_data.p_bias[k]),
+            'q_bias': float(flight_data.q_bias[k]),
+            'r_bias': float(flight_data.r_bias[k]),
+            'ax_bias': float(flight_data.ax_bias[k]),
+            'ay_bias': float(flight_data.ay_bias[k]),
+            'az_bias': float(flight_data.az_bias[k])
+        }
         result['filter'].append(nav)
 
         k += 1
@@ -204,20 +208,20 @@ def load(mat_filename):
     filename = os.path.join(dir, 'imu-0.txt')
     f = open(filename, 'w')
     for imupt in result['imu']:
-        line = [ '%.5f' % imupt.time, '%.4f' % imupt.p, '%.4f' % imupt.q, '%.4f' % imupt.r, '%.4f' % imupt.ax, '%.4f' % imupt.ay, '%.4f' % imupt.az, '%.4f' % imupt.hx, '%.4f' % imupt.hy, '%.4f' % imupt.hz, '%.4f' % imupt.temp, '0' ]
+        line = [ '%.5f' % imupt['time'], '%.4f' % imupt['p'], '%.4f' % imupt['q'], '%.4f' % imupt['r'], '%.4f' % imupt['ax'], '%.4f' % imupt['ay'], '%.4f' % imupt['az'], '%.4f' % imupt['hx'], '%.4f' % imupt['hy'], '%.4f' % imupt['hz'], '%.4f' % imupt['temp'], '0' ]
         f.write(','.join(line) + '\n')
 
     filename = os.path.join(dir, 'gps-0.txt')
     f = open(filename, 'w')
     for gpspt in result['gps']:
-        line = [ '%.5f' % gpspt.time, '%.10f' % gpspt.lat, '%.10f' % gpspt.lon, '%.4f' % gpspt.alt, '%.4f' % gpspt.vn, '%.4f' % gpspt.ve, '%.4f' % gpspt.vd, '%.4f' % gpspt.time, '8', '0' ]
+        line = [ '%.5f' % gpspt['time'], '%.10f' % gpspt['lat'], '%.10f' % gpspt['lon'], '%.4f' % gpspt['alt'], '%.4f' % gpspt['vn'], '%.4f' % gpspt['ve'], '%.4f' % gpspt['vd'], '%.4f' % gpspt['time'], '8', '0' ]
         f.write(','.join(line) + '\n')
 
     filename = os.path.join(dir, 'filter-0.txt')
     f = open(filename, 'w')
     r2d = 180.0 / math.pi
     for filtpt in result['filter']:
-        line = [ '%.5f' % filtpt.time, '%.10f' % filtpt.lat, '%.10f' % filtpt.lon, '%.4f' % filtpt.alt, '%.4f' % filtpt.vn, '%.4f' % filtpt.ve, '%.4f' % filtpt.vd, '%.4f' % (filtpt.phi*r2d), '%.4f' % (filtpt.the*r2d), '%.4f' % (filtpt.psi*r2d), '0' ]
+        line = [ '%.5f' % filtpt['time'], '%.10f' % filtpt['lat'], '%.10f' % filtpt['lon'], '%.4f' % filtpt['alt'], '%.4f' % filtpt['vn'], '%.4f' % filtpt['ve'], '%.4f' % filtpt['vd'], '%.4f' % (filtpt['phi']*r2d), '%.4f' % (filtpt['the']*r2d), '%.4f' % (filtpt['psi']*r2d), '0' ]
         f.write(','.join(line) + '\n')
 
     return result
