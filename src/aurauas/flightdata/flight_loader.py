@@ -1,7 +1,6 @@
 import os
 
 from . import aura_csv
-from . import aura_txt
 from . import px4_sdlog2
 from . import px4_ulog
 from . import sentera
@@ -15,7 +14,6 @@ def load(path, recal_file=None):
 
     (root, ext) = os.path.splitext(path)
     aura_csv_path = os.path.join(path, 'imu-0.csv')
-    aura_txt_path = os.path.join(path, 'imu-0.txt')
     ulog_path = path + '_sensor_combined_0.csv'
     sentera_path = os.path.join(path, 'imu.csv')
     
@@ -26,11 +24,6 @@ def load(path, recal_file=None):
         print('Detected aura csv format.')
         flight_data = aura_csv.load(path, recal_file)
         flight_format = 'aura_csv'
-    elif os.path.exists(aura_txt_path):
-        # aura txt format
-        print('Detected aura text format.')
-        flight_data = aura_txt.load(path, recal_file)
-        flight_format = 'aura_txt'
     elif ext == '.mat':
         # umn1
         print('Detected umn1 format.')
