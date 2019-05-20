@@ -30,39 +30,6 @@ def load(flight_dir, recalibrate=None):
     health_file = os.path.join(flight_dir, "health-0.csv")
     imu_bias_file = os.path.join(flight_dir, "imubias.csv")
 
-    # HEY: in the latest aura code, calibrated magnetometer is logged,
-    # not raw magnetometer, so we don't need to correct here.  We
-    # could 'back correct' if we wanted original values for some
-    # reason (using the calibration matrix saved with each flight
-    # log.)
-    
-    # # vireo_01
-    # mag_affine = np.array(
-    #     [[ 1.6207467043,  0.0228992488,  0.0398638786,  0.1274248748],
-    #      [-0.0169905025,  1.7164397411, -0.0001290047, -0.1140304977],
-    #      [ 0.0424979948, -0.0038515935,  1.7193766423, -0.1449816095],
-    #      [ 0.          ,  0.          ,  0.          ,  1.          ]]
-    # )
-
-    # telemaster apm2_101
-    mag_affine = np.array(
-        [[ 0.0026424919,  0.0001334248,  0.0000984977, -0.2235908546],
-         [-0.000081925 ,  0.0026419229,  0.0000751835, -0.0010757621],
-         [ 0.0000219407,  0.0000560341,  0.002541171 ,  0.040221458 ],
-         [ 0.          ,  0.          ,  0.          ,  1.          ]]
-    )
-    
-    # skywalker apm2_105
-    # mag_affine = np.array(
-    #      [[ 0.0025834778, 0.0001434776, 0.0001434961, -0.7900775707 ],
-    #       [-0.0001903118, 0.0024796553, 0.0001365238,  0.1881142449 ],
-    #       [ 0.0000556437, 0.0001329724, 0.0023791184,  0.1824851582, ],
-    #       [ 0.0000000000, 0.0000000000, 0.0000000000,  1.0000000000  ]]
-    # )
-
-    #np.set_printoptions(precision=10,suppress=True)
-    #print mag_affine
-
     pilot_mapping = 'Aura3'       # APM2 or Aura3
     result['event'] = []
     with open(event_file, 'r') as fevent:
