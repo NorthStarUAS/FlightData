@@ -331,24 +331,24 @@ def save_filter_result(filename, data_store):
     with open(filename, 'w') as csvfile:
         writer = csv.DictWriter( csvfile, fieldnames=keys )
         writer.writeheader()
-        size = len(data_store.time)
-        for i in range(size):
+        size = len(data_store['nav'])
+        for nav in data_store['nav']:
             row = dict()
-            row['timestamp'] = '%.4f' % data_store.time[i]
-            row['latitude_deg'] = '%.10f' % (data_store.lat[i]*180.0/math.pi)
-            row['longitude_deg'] = '%.10f' % (data_store.lon[i]*180.0/math.pi)
-            row['altitude_m'] = '%.2f' % data_store.alt[i]
-            row['vn_ms'] = '%.4f' % data_store.vn[i]
-            row['ve_ms'] = '%.4f' % data_store.ve[i]
-            row['vd_ms'] = '%.4f' % data_store.vd[i]
-            row['roll_deg'] = '%.2f' % (data_store.phi[i]*180.0/math.pi)
-            row['pitch_deg'] = '%.2f' % (data_store.the[i]*180.0/math.pi)
-            row['heading_deg'] = '%.2f' % (data_store.psi[i]*180.0/math.pi)
-            row['p_bias'] = '%.4f' % data_store.p_bias[i]
-            row['q_bias'] = '%.4f' % data_store.q_bias[i]
-            row['r_bias'] = '%.4f' % data_store.r_bias[i]
-            row['ax_bias'] = '%.3f' % data_store.ax_bias[i]
-            row['ay_bias'] = '%.3f' % data_store.ay_bias[i]
-            row['az_bias'] = '%.3f' % data_store.az_bias[i]
+            row['timestamp'] = '%.4f' % nav['time']
+            row['latitude_deg'] = '%.10f' % (nav['lat']*180.0/math.pi)
+            row['longitude_deg'] = '%.10f' % (nav['lon']*180.0/math.pi)
+            row['altitude_m'] = '%.2f' % nav['alt']
+            row['vn_ms'] = '%.4f' % nav['vn']
+            row['ve_ms'] = '%.4f' % nav['ve']
+            row['vd_ms'] = '%.4f' % nav['vd']
+            row['roll_deg'] = '%.2f' % (nav['phi']*180.0/math.pi)
+            row['pitch_deg'] = '%.2f' % (nav['the']*180.0/math.pi)
+            row['heading_deg'] = '%.2f' % (nav['psi']*180.0/math.pi)
+            row['p_bias'] = '%.4f' % nav['gbx']
+            row['q_bias'] = '%.4f' % nav['gby']
+            row['r_bias'] = '%.4f' % nav['gbz']
+            row['ax_bias'] = '%.3f' % nav['abx']
+            row['ay_bias'] = '%.3f' % nav['aby']
+            row['az_bias'] = '%.3f' % nav['abz']
             row['status'] = '%d' % 0
             writer.writerow(row)

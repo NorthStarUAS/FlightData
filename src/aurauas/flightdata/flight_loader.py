@@ -38,17 +38,23 @@ def load(path, recal_file=None):
     elif os.path.exists(ulog_path):
         # px4_ulog
         print('Detected px4 ulog (csv family of files) format.')
+        print('Support needs code updates')
+        quit()
         flight_data = px4_ulog.load(path)
         flight_format = 'px4_ulog'
     elif ext == '.csv':
         # px4 sdlog2
         print('Detected px4 ulog (single csv file) format.')
+        print('Support needs code updates')
+        quit()
         flight_data = px4_sdlog2.load(path)
         flight_format = 'px4_sdlog2'
     elif os.path.exists(sentera_path):
         # sentera1 or sentera2
         print('Detected sentera format.')
         print('Notice: assuming original sentera camera format')
+        print('Support needs code updates')
+        quit()
         flight_data = sentera.load(path)
         # imu_data, gps_data, air_data, filter_data = sentera2.load(path)
         flight_format = 'sentera'

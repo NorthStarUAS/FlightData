@@ -14,9 +14,6 @@ mps2kt = 1.94384
 
 class dict2struct(): pass
 
-# empty class we'll fill in with data members
-class Record(): pass
-
 def load(mat_filename):
     # Name of .mat file that exists in the directory defined above and
     # has the flight_data and flight_info structures

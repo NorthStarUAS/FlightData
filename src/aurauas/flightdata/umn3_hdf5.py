@@ -12,9 +12,6 @@ mps2kt = 1.94384
 r2d = 180.0 / math.pi
 d2r = math.pi / 180.0
 
-# empty class we'll fill in with data members
-class Record(): pass
-
 def load(h5_filename):
     # Name of .mat file that exists in the directory defined above and
     # has the flight_data and flight_info structures
@@ -44,9 +41,9 @@ def load(h5_filename):
     ax = data['/Sensors/Fmu/Mpu9250/AccelX_mss'][()].astype(float)
     ay = data['/Sensors/Fmu/Mpu9250/AccelY_mss'][()].astype(float)
     az = data['/Sensors/Fmu/Mpu9250/AccelZ_mss'][()].astype(float)
-    hx = data['/Sensors/Fmu/Mpu9250/MagX_uT'][()].astype(float)
-    hy = data['/Sensors/Fmu/Mpu9250/MagY_uT'][()].astype(float)
-    hz = data['/Sensors/Fmu/Mpu9250/MagZ_uT'][()].astype(float)
+    hxa = data['/Sensors/Fmu/Mpu9250/MagX_uT'][()].astype(float)
+    hya = data['/Sensors/Fmu/Mpu9250/MagY_uT'][()].astype(float)
+    hza = data['/Sensors/Fmu/Mpu9250/MagZ_uT'][()].astype(float)
     temp = data['/Sensors/Fmu/Mpu9250/Temperature_C'][()].astype(float)
 
     # temporary fault modeling for a specific project
@@ -60,18 +57,6 @@ def load(h5_filename):
         gx10 = None
         
     for i in range( size ):
-        imu_pt = Record()
-        imu_pt.time = timestamp[i][0]
-        imu_pt.p = gx[i][0]
-        if not gx2 is None:
-            imu_pt.p -= gx2[i][0]
-        if not gx10 is None:
-            imu_pt.p -= gx10[i][0]
-        imu_pt.q = gy[i][0]
-        imu_pt.r = gz[i][0]
-        imu_pt.ax = ax[i][0]
-        imu_pt.ay = ay[i][0]
-        imu_pt.az = az[i][0]
         aircraft = 'none'
         if aircraft == 'Mjolner':
             affine = np.array(
@@ -79,18 +64,38 @@ def load(h5_filename):
                  [-0.0014668783,  0.0179526977,  0.0008107074, -1.0884978428],
                  [-0.000477532,   0.0004510884,  0.016958479,   0.3941687691],
                  [ 0.,            0.,            0.,            1.          ]]
-)
-            mag = np.array([hx[i][0], hy[i][0], hz[i][0], 1.0])
+            )
+            mag = np.array([hxa[i][0], hya[i][0], hza[i][0], 1.0])
             #raw = np.hstack((mag, 1.0))
             cal = np.dot(affine, mag)
-            imu_pt.hx = cal[0]
-            imu_pt.hy = cal[1]
-            imu_pt.hz = cal[2]
+            hx = cal[0]
+            hy = cal[1]
+            hz = cal[2]
         else:
-            imu_pt.hx = hx[i][0]
-            imu_pt.hy = hy[i][0]
-            imu_pt.hz = hz[i][0]
-        imu_pt.temp = temp[i][0]
+            hx = hxa[i][0]
+            hy = hya[i][0]
+            hz = hza[i][0]
+        imu_pt = {
+            'time': timestamp[i][0],
+            'p': gx[i][0],
+            'q': gy[i][0],
+            'r': gz[i][0],
+            'ax': ax[i][0],
+            'ay': ay[i][0],
+            'az': az[i][0],
+            'hx': hx,
+            'hy': hy,
+            'hz': hz,
+            'temp': temp[i][0]
+        }
+        if not gx2 is None:
+            imu_pt['p'] -= gx2[i][0]
+        if not gx10 is None:
+            imu_pt['p'] -= gx10[i][0]
+        if not gx2 is None:
+            imu_pt['p'] -= gx2[i][0]
+        if not gx10 is None:
+            imu_pt['p'] -= gx10[i][0]
         result['imu'].append(imu_pt)
 
     result['gps'] = []
@@ -118,27 +123,29 @@ def load(h5_filename):
         if abs(lat - last_gps_lat) > 0.0000000001 or abs(lon - last_gps_lon) > 0.0000000000001:
             last_gps_lat = lat
             last_gps_lon = lon
-            gps_pt = Record()
-            gps_pt.time = timestamp[i][0]
-            gps_pt.unix_sec = unixbase + timestamp[i][0]
-            gps_pt.lat = lat
-            gps_pt.lon = lon
-            gps_pt.alt = alt[i][0]
-            gps_pt.vn = vn[i][0]
-            gps_pt.ve = ve[i][0]
-            gps_pt.vd = vd[i][0]
-            gps_pt.sats = int(sats[i][0])
+            gps_pt = {
+                'time': timestamp[i][0],
+                'unix_sec': unixbase + timestamp[i][0],
+                'lat': lat,
+                'lon': lon,
+                'alt': alt[i][0],
+                'vn': vn[i][0],
+                've': ve[i][0],
+                'vd': vd[i][0],
+                'sats': int(sats[i][0])
+            }
             result['gps'].append(gps_pt)
             
     result['air'] = []
     airspeed = data['/Sensor-Processing/vIAS_ms'][()] * mps2kt
     altitude = data['/Sensor-Processing/Altitude_m'][()]
     for i in range( size ):
-        air_pt = Record()
-        air_pt.time = timestamp[i][0]
-        air_pt.airspeed = airspeed[i][0]
-        air_pt.altitude = altitude[i][0]
-        air_pt.alt_true = altitude[i][0]
+        air_pt = {
+            'time': timestamp[i][0],
+            'airspeed': airspeed[i][0],
+            'altitude': altitude[i][0],
+            'alt_true': altitude[i][0]
+        }
         result['air'].append(air_pt)
         
     result['filter'] = []
@@ -158,24 +165,25 @@ def load(h5_filename):
     aby = data['/Sensor-Processing/Baseline/INS/AccelYBias_mss'][()]
     abz = data['/Sensor-Processing/Baseline/INS/AccelZBias_mss'][()]
     for i in range( size ):
-        nav = Record()
-        nav.time = timestamp[i][0]
-        nav.lat = lat[i][0]
-        nav.lon = lon[i][0]
-        nav.alt = alt[i][0]
-        nav.vn = vn[i][0]
-        nav.ve = ve[i][0]
-        nav.vd = vd[i][0]
-        nav.phi = roll[i][0]
-        nav.the = pitch[i][0]
-        nav.psi = yaw[i][0]
-        nav.p_bias = gbx[i][0]
-        nav.q_bias = gby[i][0]
-        nav.r_bias = gbz[i][0]
-        nav.ax_bias = abx[i][0]
-        nav.ay_bias = aby[i][0]
-        nav.az_bias = abz[i][0]
-        if abs(nav.lat) > 0.0001 and abs(nav.lon) > 0.0001:
+        nav = {
+            'time': timestamp[i][0],
+            'lat': lat[i][0],
+            'lon': lon[i][0],
+            'alt': alt[i][0],
+            'vn': vn[i][0],
+            've': ve[i][0],
+            'vd': vd[i][0],
+            'phi': roll[i][0],
+            'the': pitch[i][0],
+            'psi': yaw[i][0],
+            'p_bias': gbx[i][0],
+            'q_bias': gby[i][0],
+            'r_bias': gbz[i][0],
+            'ax_bias': abx[i][0],
+            'ay_bias': aby[i][0],
+            'az_bias': abz[i][0]
+        }
+        if abs(nav['lat']) > 0.0001 and abs(nav['lon']) > 0.0001:
             result['filter'].append(nav)
             
     # load filter (post process) records if they exist (for comparison
@@ -190,61 +198,64 @@ def load(h5_filename):
                 lat = float(row['latitude_deg'])
                 lon = float(row['longitude_deg'])
                 if abs(lat) > 0.0001 and abs(lon) > 0.0001:
-                    nav = Record()
-                    nav.time = float(row['timestamp'])
-                    nav.lat = lat*d2r
-                    nav.lon = lon*d2r
-                    nav.alt = float(row['altitude_m'])
-                    nav.vn = float(row['vn_ms'])
-                    nav.ve = float(row['ve_ms'])
-                    nav.vd = float(row['vd_ms'])
-                    nav.phi = float(row['roll_deg'])*d2r
-                    nav.the = float(row['pitch_deg'])*d2r
-                    psi = float(row['heading_deg'])
-                    if psi > 180.0:
-                        psi = psi - 360.0
-                    if psi < -180.0:
-                        psi = psi + 360.0
-                    nav.psi = psi*d2r
-                    nav.p_bias = float(row['p_bias'])
-                    nav.q_bias = float(row['q_bias'])
-                    nav.r_bias = float(row['r_bias'])
-                    nav.ax_bias = float(row['ax_bias'])
-                    nav.ay_bias = float(row['ay_bias'])
-                    nav.az_bias = float(row['az_bias'])
+                    psi_deg = float(row['heading_deg'])
+                    if psi_deg > 180.0:
+                        psi_deg = psi_deg - 360.0
+                    if psi_deg < -180.0:
+                        psi_deg = psi_deg + 360.0
+                    nav = {
+                        'time': float(row['timestamp']),
+                        'lat': lat*d2r,
+                        'lon': lon*d2r,
+                        'alt': float(row['altitude_m']),
+                        'vn': float(row['vn_ms']),
+                        've': float(row['ve_ms']),
+                        'vd': float(row['vd_ms']),
+                        'phi': float(row['roll_deg'])*d2r,
+                        'the': float(row['pitch_deg'])*d2r,
+                        'psi': psi_deg*d2r,
+                        'p_bias': float(row['p_bias']),
+                        'q_bias': float(row['q_bias']),
+                        'r_bias': float(row['r_bias']),
+                        'ax_bias': float(row['ax_bias']),
+                        'ay_bias': float(row['ay_bias']),
+                        'az_bias': float(row['az_bias'])
+                    }
                     result['filter_post'].append(nav)
 
     result['pilot'] = []
-    roll = data['/Control/cmdRoll_rps'][()]
-    pitch = data['/Control/cmdPitch_rps'][()]
-    yaw = data['/Control/cmdYaw_rps'][()]
+    roll = data['/Control/cmdRoll_rads'][()]
+    pitch = data['/Control/cmdPitch_rads'][()]
+    yaw = data['/Control/cmdYaw_rads'][()]
     motor = data['/Control/cmdMotor_nd'][()]
     flaps = data['/Control/cmdFlap_nd'][()]
     auto = data['/Mission/socEngage'][()]
     for i in range( size ):
-        pilot = Record()
-        pilot.time = timestamp[i][0]
-        pilot.aileron = roll[i][0]
-        pilot.elevator = pitch[i][0]
-        pilot.throttle = motor[i][0]
-        pilot.rudder = yaw[i][0]
-        pilot.flaps = flaps[i][0]
-        pilot.gear = 0.0
-        pilot.aux1 = 0.0
-        pilot.auto_manual = auto[i][0]
+        pilot = {
+            'time': timestamp[i][0],
+            'aileron': roll[i][0],
+            'elevator': pitch[i][0],
+            'throttle': motor[i][0],
+            'rudder': yaw[i][0],
+            'flaps': flaps[i][0],
+            'gear': 0.0,
+            'aux1': 0.0,
+            'auto_manual': auto[i][0]
+        }
         result['pilot'].append(pilot)
         
     result['act'] = []
     for i in range( size ):
-        act = Record()
-        act.time = timestamp[i][0]
-        act.aileron = roll[i][0]
-        act.elevator = pitch[i][0]
-        act.rudder = yaw[i][0]
-        act.throttle = motor[i][0]
-        act.flaps = flaps[i][0]
-        act.gear = 0.0
-        act.aux1 = 0.0
+        act = {
+            'time': timestamp[i][0],
+            'aileron': roll[i][0],
+            'elevator': pitch[i][0],
+            'rudder': yaw[i][0],
+            'throttle': motor[i][0],
+            'flaps': flaps[i][0],
+            'gear': 0.0,
+            'aux1': 0.0
+        }
         result['act'].append(act)
                 
     result['ap'] = []
@@ -252,26 +263,28 @@ def load(h5_filename):
     pitch = data['/Control/refTheta_rad'][()]
     vel = data['/Control/refV_ms'][()]
     for i in range( size ):
-        ap = Record()
-        ap.time = timestamp[i][0]
-        ap.master_switch = int(auto[i][0] > 0)
-        ap.pilot_pass_through = int(0)
-        ap.hdg = 0.0
-        ap.roll = roll[i][0] * r2d
-        ap.alt = 0.0
-        ap.pitch = pitch[i][0] * r2d
-        ap.speed = vel[i][0] * mps2kt
-        ap.ground = 0.0
+        ap = {
+            'time': timestamp[i][0],
+            'master_switch': int(auto[i][0] > 0),
+            'pilot_pass_through': int(0),
+            'hdg': 0.0,
+            'roll': roll[i][0] * r2d,
+            'alt': 0.0,
+            'pitch': pitch[i][0] * r2d,
+            'speed': vel[i][0] * mps2kt,
+            'ground': 0.0
+        }
         result['ap'].append(ap)
 
     result['health'] = []
     vcc = data['/Sensors/Fmu/Voltage/Input_V']
     for i in range( size ):
-        health = Record()
-        health.time = timestamp[i][0]
-        health.main_vcc = vcc[i][0]
-        #health.test_index = indxTest[i][0]
-        #health.excite_mode = exciteMode[i][0]
+        health = {
+            'time': timestamp[i][0],
+            'main_vcc': vcc[i][0]
+            #'test_index': indxTest[i][0],
+            #'excite_mode': exciteMode[i][0]
+        }
         result['health'].append(health)
 
     result['event'] = []
@@ -286,18 +299,20 @@ def load(h5_filename):
         test_id = indxTest[i][0]
         excite = exciteMode[i][0]
         if soc != last_soc:
-            event = Record()
-            event.time = timestamp[i][0]
+            event = {
+                'time': timestamp[i][0]
+            }
             if soc:
-                event.message = "SOC Engaged"
+                event['message'] = "SOC Engaged"
             else:
-                event.message = "SOC Disengaged"
+                event['message'] = "SOC Disengaged"
             result['event'].append(event)
             last_soc = soc
         if test_id != last_id:
-            event = Record()
-            event.time = timestamp[i][0]
-            event.message = 'Test ID = %d' % test_id
+            event = {
+                'time': timestamp[i][0]
+            }
+            event['message'] = 'Test ID = %d' % test_id
             result['event'].append(event)
             last_id = test_id
             
@@ -307,20 +322,20 @@ def load(h5_filename):
     filename = os.path.join(dir, 'imu-0.txt')
     f = open(filename, 'w')
     for imupt in result['imu']:
-        line = [ '%.5f' % imupt.time, '%.4f' % imupt.p, '%.4f' % imupt.q, '%.4f' % imupt.r, '%.4f' % imupt.ax, '%.4f' % imupt.ay, '%.4f' % imupt.az, '%.4f' % imupt.hx, '%.4f' % imupt.hy, '%.4f' % imupt.hz, '%.4f' % imupt.temp, '0' ]
+        line = [ '%.5f' % imupt['time'], '%.4f' % imupt['p'], '%.4f' % imupt['q'], '%.4f' % imupt['r'], '%.4f' % imupt['ax'], '%.4f' % imupt['ay'], '%.4f' % imupt['az'], '%.4f' % imupt['hx'], '%.4f' % imupt['hy'], '%.4f' % imupt['hz'], '%.4f' % imupt['temp'], '0' ]
         f.write(','.join(line) + '\n')
 
     filename = os.path.join(dir, 'gps-0.txt')
     f = open(filename, 'w')
     for gpspt in result['gps']:
-        line = [ '%.5f' % gpspt.time, '%.10f' % gpspt.lat, '%.10f' % gpspt.lon, '%.4f' % gpspt.alt, '%.4f' % gpspt.vn, '%.4f' % gpspt.ve, '%.4f' % gpspt.vd, '%.4f' % gpspt.time, '8', '0' ]
+        line = [ '%.5f' % gpspt['time'], '%.10f' % gpspt['lat'], '%.10f' % gpspt['lon'], '%.4f' % gpspt['alt'], '%.4f' % gpspt['vn'], '%.4f' % gpspt['ve'], '%.4f' % gpspt['vd'], '%.4f' % gpspt['time'], '8', '0' ]
         f.write(','.join(line) + '\n')
 
     if 'filter' in result:
         filename = os.path.join(dir, 'filter-0.txt')
         f = open(filename, 'w')
         for filtpt in result['filter']:
-            line = [ '%.5f' % filtpt.time, '%.10f' % filtpt.lat, '%.10f' % filtpt.lon, '%.4f' % filtpt.alt, '%.4f' % filtpt.vn, '%.4f' % filtpt.ve, '%.4f' % filtpt.vd, '%.4f' % (filtpt.phi*r2d), '%.4f' % (filtpt.the*r2d), '%.4f' % (filtpt.psi*r2d), '0' ]
+            line = [ '%.5f' % filtpt['time'], '%.10f' % filtpt['lat'], '%.10f' % filtpt['lon'], '%.4f' % filtpt['alt'], '%.4f' % filtpt['vn'], '%.4f' % filtpt['ve'], '%.4f' % filtpt['vd'], '%.4f' % (filtpt['phi']*r2d), '%.4f' % (filtpt['the']*r2d), '%.4f' % (filtpt['psi']*r2d), '0' ]
             f.write(','.join(line) + '\n')
 
     return result
