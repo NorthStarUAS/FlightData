@@ -1,7 +1,6 @@
 # load aura csv data format
 
 import csv
-import numpy as np
 import os
 import math
 import re
@@ -115,10 +114,13 @@ def load(flight_dir, recalibrate=None):
             lat = float(row['latitude_deg'])
             lon = float(row['longitude_deg'])
             psi_deg = float(row['heading_deg'])
-            if psi_deg > 180.0:
-                psi_deg = psi_deg - 360.0
-            if psi_deg < -180.0:
-                psi_deg = psi_deg + 360.0
+            psi = psi_deg*d2r
+            if psi > math.pi:
+                psi -= 2*math.pi
+            if psi < -math.pi:
+                psi += 2*math.pi
+            psix = math.cos(psi)
+            psiy = math.sin(psi)
             if abs(lat) > 0.0001 and abs(lon) > 0.0001:
                 nav = {
                     'time': float(row['timestamp']),
@@ -130,7 +132,9 @@ def load(flight_dir, recalibrate=None):
                     'vd': float(row['vd_ms']),
                     'phi': float(row['roll_deg'])*d2r,
                     'the': float(row['pitch_deg'])*d2r,
-                    'psi': psi_deg*d2r,
+                    'psi': psi,
+                    'psix': psix,
+                    'psiy': psiy,
                     'p_bias': float(row['p_bias']),
                     'q_bias': float(row['q_bias']),
                     'r_bias': float(row['r_bias']),
@@ -150,10 +154,13 @@ def load(flight_dir, recalibrate=None):
                 lat = float(row['latitude_deg'])
                 lon = float(row['longitude_deg'])
                 psi_deg = float(row['heading_deg'])
-                if psi_deg > 180.0:
-                    psi_deg = psi_deg - 360.0
-                if psi < -180.0:
-                    psi_deg = psi_deg + 360.0
+                psi = psi_deg*d2r
+                if psi > math.pi:
+                    psi -= 2*math.pi
+                if psi < -math.pi:
+                    psi += 2*math.pi
+                psix = math.cos(psi)
+                psiy = math.sin(psi)
                 if abs(lat) > 0.0001 and abs(lon) > 0.0001:
                     nav = {
                         'time': float(row['timestamp']),
@@ -165,7 +172,9 @@ def load(flight_dir, recalibrate=None):
                         'vd': float(row['vd_ms']),
                         'phi': float(row['roll_deg'])*d2r,
                         'the': float(row['pitch_deg'])*d2r,
-                        'psi': psi_deg*d2r,
+                        'psi': psi,
+                        'psix': psix,
+                        'psiy': psiy,
                         'p_bias': float(row['p_bias']),
                         'q_bias': float(row['q_bias']),
                         'r_bias': float(row['r_bias']),
@@ -232,11 +241,16 @@ def load(flight_dir, recalibrate=None):
         with open(ap_file, 'r') as fap:
             reader = csv.DictReader(fap)
             for row in reader:
+                hdg = float(row['groundtrack_deg'])
+                hdgx = math.cos(hdg*d2r)
+                hdgy = math.sin(hdg*d2r)
                 ap = {
                     'time': float(row['timestamp']),
                     'master_switch': int(row['master_switch']),
                     'pilot_pass_through': int(row['pilot_pass_through']),
-                    'hdg': float(row['groundtrack_deg']),
+                    'hdg': hdg,
+                    'hdgx': hdgx,
+                    'hdgy': hdgy,
                     'roll': float(row['roll_deg']),
                     'alt': float(row['altitude_msl_ft']),
                     'pitch': float(row['pitch_deg']),

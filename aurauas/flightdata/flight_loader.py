@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 
 from . import aura_csv
 from . import px4_sdlog2
@@ -61,7 +62,12 @@ def load(path, recal_file=None):
     else:
         print('Unable to determine data log format (or path not valid):', path)
 
-    return flight_data, flight_format
+    # convert to pandas DataFrame's
+    for key in flight_data:
+        flight_data[key] = pd.DataFrame(flight_data[key])
+        flight_data[key].set_index('time', inplace=True, drop=False)
 
+    return flight_data, flight_format
+    
 def save(filename, data):
     aura_csv.save_filter_result(filename, data)

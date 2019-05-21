@@ -165,6 +165,11 @@ def load(h5_filename):
     aby = data['/Sensor-Processing/Baseline/INS/AccelYBias_mss'][()]
     abz = data['/Sensor-Processing/Baseline/INS/AccelZBias_mss'][()]
     for i in range( size ):
+        psi = yaw[i][0]
+        if psi > math.pi:
+            psi -= 2*math.pi
+        if psi < -math.pi:
+            psi += 2*math.pi
         nav = {
             'time': timestamp[i][0],
             'lat': lat[i][0],
@@ -175,7 +180,7 @@ def load(h5_filename):
             'vd': vd[i][0],
             'phi': roll[i][0],
             'the': pitch[i][0],
-            'psi': yaw[i][0],
+            'psi': psi,
             'p_bias': gbx[i][0],
             'q_bias': gby[i][0],
             'r_bias': gbz[i][0],
@@ -224,9 +229,18 @@ def load(h5_filename):
                     result['filter_post'].append(nav)
 
     result['pilot'] = []
-    roll = data['/Control/cmdRoll_rads'][()]
-    pitch = data['/Control/cmdPitch_rads'][()]
-    yaw = data['/Control/cmdYaw_rads'][()]
+    if '/Control/cmdRoll_rads' in data:
+        roll = data['/Control/cmdRoll_rads'][()]
+    elif '/Control/cmdRoll_rps' in data:
+        roll = data['/Control/cmdRoll_rps'][()]
+    if '/Control/cmdPitch_rads' in data:
+        pitch = data['/Control/cmdPitch_rads'][()]
+    elif '/Control/cmdPitch_rps' in data:
+        pitch = data['/Control/cmdPitch_rps'][()]
+    if '/Control/cmdYaw_rads' in data:
+        yaw = data['/Control/cmdYaw_rads'][()]
+    elif '/Control/cmdYaw_rps' in data:
+        yaw = data['/Control/cmdYaw_rps'][()]
     motor = data['/Control/cmdMotor_nd'][()]
     flaps = data['/Control/cmdFlap_nd'][()]
     auto = data['/Mission/socEngage'][()]
