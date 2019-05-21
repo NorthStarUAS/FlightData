@@ -8,6 +8,6 @@ setup(name='aurauas-flightdata',
       author='Curtis L. Olson',
       author_email='curtolson@flightgear.org',
       url='https://github.com/AuraUAS',
-      package_dir = {'': 'src'},
-      packages = find_packages('src'),
+      package_dir = {'': 'aurauas'},
+      packages = find_packages('aurauas'),
      )
