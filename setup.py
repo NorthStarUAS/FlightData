@@ -10,5 +10,5 @@ setup(name='aurauas-flightdata',
       url='https://github.com/AuraUAS',
       #package_dir = {'': 'aurauas'},
       #packages = find_packages('aurauas'),
-      packages = ['aurauas.flightdata', 'aurauas.weather']
+      packages = ['aurauas', 'aurauas.flightdata', 'aurauas.weather']
      )
