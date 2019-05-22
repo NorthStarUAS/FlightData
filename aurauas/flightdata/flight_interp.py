@@ -12,9 +12,10 @@ class FlightInterpolate():
         # df is a pd.DataFrame indexed by time (in seconds)
         columns = {}
         for key in data[0]:
-            columns[key] = []
+            if type(data[0][key]) == 'int' or type(data[0][key]) == 'float':
+                columns[key] = []
         for record in data:
-            for key in record:
+            for key in columns:
                 columns[key].append(record[key])
         for key in columns:
             columns[key] = np.array(columns[key])
