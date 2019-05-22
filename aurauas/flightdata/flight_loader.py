@@ -62,12 +62,16 @@ def load(path, recal_file=None):
     else:
         print('Unable to determine data log format (or path not valid):', path)
 
+    return flight_data, flight_format
+
+def as_pandas(flight_data):
+    result = {}
     # convert to pandas DataFrame's
     for key in flight_data:
-        flight_data[key] = pd.DataFrame(flight_data[key])
-        flight_data[key].set_index('time', inplace=True, drop=False)
-
-    return flight_data, flight_format
-    
+        result[key] = pd.DataFrame(flight_data[key])
+        result[key].set_index('time', inplace=True, drop=False)
+    return result
+       
 def save(filename, data):
     aura_csv.save_filter_result(filename, data)
+
