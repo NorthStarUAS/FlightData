@@ -12,7 +12,8 @@ class FlightInterpolate():
         # df is a pd.DataFrame indexed by time (in seconds)
         columns = {}
         for key in data[0]:
-            if type(data[0][key]) == 'int' or type(data[0][key]) == 'float':
+            if type(data[0][key]) != str:
+                #print("  field:", key, type(data[0][key]))
                 columns[key] = []
         for record in data:
             for key in columns:
@@ -53,6 +54,7 @@ class InterpolationGroup():
     def __init__(self, data):
         self.group = {}
         for key in data:
+            #print("group:", key)
             self.group[key] = FlightInterpolate(data[key])
 
     def query(self, t, key):
