@@ -106,6 +106,7 @@ def load(h5_filename):
     ve = data['/Sensors/uBlox/EastVelocity_ms'][()]
     vd = data['/Sensors/uBlox/DownVelocity_ms'][()]
     sats = data['/Sensors/uBlox/NumberSatellites'][()]
+    tow = data['/Sensors/uBlox/TOW'][()]
     year = data['/Sensors/uBlox/Year'][()]
     month = data['/Sensors/uBlox/Month'][()]
     day = data['/Sensors/uBlox/Day'][()]
@@ -116,6 +117,27 @@ def load(h5_filename):
                           hour[0][0], minute[0][0], second[0][0])
     unixbase = calendar.timegm(d.timetuple()) - timestamp[0][0]
 
+    last_alt = alt[0][0]
+    last_time = timestamp[0][0]
+    last_tow = tow[0][0]
+    vd_list = []
+    vd_est = 0.0
+    for i in range( size ):
+        if tow[i][0] != last_tow:
+            print("NOTICE: over writing gps down velocity with differentiated alt as a test for Huginn flight #02")
+            dt = timestamp[i][0] - last_time
+            da = alt[i][0] - last_alt
+            print("sec: %.2f" % tow[i][0], "t: %.3f" % timestamp[i][0], "dt: %.3f" % dt,
+                  "alt: %.2f" % alt[i][0], "da: %.2f" % da)
+            if dt > 0.001:
+                vd_est = -da / dt
+            else:
+                vd_est = 0.0
+            last_alt = alt[i][0]
+            last_time = timestamp[i][0]
+            last_tow = tow[i][0]
+        vd_list.append(vd_est)
+        
     for i in range( size ):
         lat = lat_rad[i][0] * r2d
         lon = lon_rad[i][0] * r2d
@@ -131,7 +153,7 @@ def load(h5_filename):
                 'alt': alt[i][0],
                 'vn': vn[i][0],
                 've': ve[i][0],
-                'vd': vd[i][0],
+                'vd': vd_list[i],
                 'sats': int(sats[i][0])
             }
             result['gps'].append(gps_pt)
