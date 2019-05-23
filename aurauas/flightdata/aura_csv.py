@@ -34,9 +34,12 @@ def load(flight_dir, recalibrate=None):
     with open(event_file, 'r') as fevent:
         reader = csv.DictReader(fevent)
         for row in reader:
+            msg = row['message']
+            if type(msg) == bytes:
+                msg = msg.decode()
             event = {
                 'time': float(row['timestamp']),
-                'message': row['message']
+                'message': msg
             }
             if 'Aura3' in event['message']:
                 pilot_mapping = 'Aura3'
