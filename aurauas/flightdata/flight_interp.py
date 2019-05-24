@@ -11,6 +11,8 @@ class FlightInterpolate():
     def __init__(self, data):
         # df is a pd.DataFrame indexed by time (in seconds)
         columns = {}
+        if not len(data):
+            return
         for key in data[0]:
             if type(data[0][key]) != str:
                 #print("  field:", key, type(data[0][key]))

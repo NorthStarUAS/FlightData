@@ -307,7 +307,7 @@ def load(flight_dir, recalibrate=None):
 
     return result
 
-def save_filter_result(filename, data_store):
+def save_filter_result(filename, nav):
     keys = ['timestamp', 'latitude_deg', 'longitude_deg', 'altitude_m',
             'vn_ms', 've_ms', 'vd_ms', 'roll_deg', 'pitch_deg', 'heading_deg',
             'p_bias', 'q_bias', 'r_bias', 'ax_bias', 'ay_bias', 'az_bias',
@@ -315,24 +315,23 @@ def save_filter_result(filename, data_store):
     with open(filename, 'w') as csvfile:
         writer = csv.DictWriter( csvfile, fieldnames=keys )
         writer.writeheader()
-        size = len(data_store['nav'])
-        for nav in data_store['nav']:
+        for navpt in nav:
             row = dict()
-            row['timestamp'] = '%.4f' % nav['time']
-            row['latitude_deg'] = '%.10f' % (nav['lat']*180.0/math.pi)
-            row['longitude_deg'] = '%.10f' % (nav['lon']*180.0/math.pi)
-            row['altitude_m'] = '%.2f' % nav['alt']
-            row['vn_ms'] = '%.4f' % nav['vn']
-            row['ve_ms'] = '%.4f' % nav['ve']
-            row['vd_ms'] = '%.4f' % nav['vd']
-            row['roll_deg'] = '%.2f' % (nav['phi']*180.0/math.pi)
-            row['pitch_deg'] = '%.2f' % (nav['the']*180.0/math.pi)
-            row['heading_deg'] = '%.2f' % (nav['psi']*180.0/math.pi)
-            row['p_bias'] = '%.4f' % nav['gbx']
-            row['q_bias'] = '%.4f' % nav['gby']
-            row['r_bias'] = '%.4f' % nav['gbz']
-            row['ax_bias'] = '%.3f' % nav['abx']
-            row['ay_bias'] = '%.3f' % nav['aby']
-            row['az_bias'] = '%.3f' % nav['abz']
+            row['timestamp'] = '%.4f' % navpt['time']
+            row['latitude_deg'] = '%.10f' % (navpt['lat']*180.0/math.pi)
+            row['longitude_deg'] = '%.10f' % (navpt['lon']*180.0/math.pi)
+            row['altitude_m'] = '%.2f' % navpt['alt']
+            row['vn_ms'] = '%.4f' % navpt['vn']
+            row['ve_ms'] = '%.4f' % navpt['ve']
+            row['vd_ms'] = '%.4f' % navpt['vd']
+            row['roll_deg'] = '%.2f' % (navpt['phi']*180.0/math.pi)
+            row['pitch_deg'] = '%.2f' % (navpt['the']*180.0/math.pi)
+            row['heading_deg'] = '%.2f' % (navpt['psi']*180.0/math.pi)
+            row['p_bias'] = '%.4f' % navpt['gbx']
+            row['q_bias'] = '%.4f' % navpt['gby']
+            row['r_bias'] = '%.4f' % navpt['gbz']
+            row['ax_bias'] = '%.3f' % navpt['abx']
+            row['ay_bias'] = '%.3f' % navpt['aby']
+            row['az_bias'] = '%.3f' % navpt['abz']
             row['status'] = '%d' % 0
             writer.writerow(row)
