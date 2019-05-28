@@ -29,7 +29,7 @@ def load(path, recal_file=None):
             md = data["/metadata"]
             if md.attrs.get("format", "") == "AuraUAS":
                 print("Detected AuraUAS hdf5 format.")
-                flight_data = aura_h5.load(path, recal_file)
+                flight_data = aura_hdf5.load(path, recal_file)
                 flight_format = 'aura_hdf5'
             else:
                 print('Detected UMN3 (hdf5) format.')
