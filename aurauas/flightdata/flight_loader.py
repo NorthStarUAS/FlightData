@@ -1,7 +1,9 @@
+import h5py
 import os
 import pandas as pd
 
 from . import aura_csv
+from . import aura_hdf5
 from . import px4_sdlog2
 from . import px4_ulog
 from . import sentera
@@ -19,7 +21,20 @@ def load(path, recal_file=None):
     sentera_path = os.path.join(path, 'imu.csv')
     
     # determine the data log format and call the corresponding loader code
-    
+
+    if ext == '.h5':
+        # quick peek
+        data = h5py.File(path, 'r')
+        if "metadata" in data:
+            md = data["/metadata"]
+            if md.attrs.get("format", "") == "AuraUAS":
+                print("Detected AuraUAS hdf5 format.")
+                flight_data = aura_h5.load(path, recal_file)
+                flight_format = 'aura_hdf5'
+            else:
+                print('Detected UMN3 (hdf5) format.')
+                flight_data = umn3_hdf5.load(path)
+                flight_format = 'umn3'
     if os.path.exists(aura_csv_path):
         # aura csv format
         print('Detected aura csv format.')
@@ -31,7 +46,7 @@ def load(path, recal_file=None):
         print('Notice: assuming umn1 .mat format')
         flight_data = umn1_mat.load(path)
         flight_format = 'umn1'
-    elif ext == '.h5' or ext == '.hdf5':
+    elif ext == '.h5':
         # umn3 (hdf5)
         print('Detected umn3 (hdf5) format.')
         flight_data = umn3_hdf5.load(path)
