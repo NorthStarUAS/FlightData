@@ -22,13 +22,6 @@ def load(h5_filename, recalibrate=None):
 
     # load imu/gps data files
     imucal_json = os.path.join(flight_dir, "imucal.json")
-    gps_file = os.path.join(flight_dir, "gps-0.csv")
-    air_file = os.path.join(flight_dir, "air-0.csv")
-    filter_file = os.path.join(flight_dir, "filter-0.csv")
-    filter_post = os.path.join(flight_dir, "filter-post.csv")
-    pilot_file = os.path.join(flight_dir, "pilot-0.csv")
-    act_file = os.path.join(flight_dir, "act-0.csv")
-    ap_file = os.path.join(flight_dir, "ap-0.csv")
     health_file = os.path.join(flight_dir, "health-0.csv")
     imu_bias_file = os.path.join(flight_dir, "imubias.csv")
 
@@ -90,8 +83,8 @@ def load(h5_filename, recalibrate=None):
             gps = {
                 'time': timestamp[i][0],
                 'unix_sec': unix_sec[i][0],
-                'lat': lat_deg,
-                'lon': lon_deg,
+                'lat': lat_deg[i][0],
+                'lon': lon_deg[i][0],
                 'alt': alt[i][0],
                 'vn': vn[i][0],
                 've': ve[i][0],
