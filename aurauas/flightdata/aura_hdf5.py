@@ -22,8 +22,6 @@ def load(h5_filename, recalibrate=None):
 
     # load imu/gps data files
     imucal_json = os.path.join(flight_dir, "imucal.json")
-    health_file = os.path.join(flight_dir, "health-0.csv")
-    imu_bias_file = os.path.join(flight_dir, "imubias.csv")
 
     timestamp = data['/events/timestamp'][()].astype(float)
     message = data['/events/message'][()]
@@ -299,36 +297,25 @@ def load(h5_filename, recalibrate=None):
         }
         result['ap'].append(ap)
 
-    if os.path.exists(health_file):
-        result['health'] = []
-        with open(health_file, 'r') as fhealth:
-            reader = csv.DictReader(fhealth)
-            for row in reader:
-                health = {
-                    'time': float(row['timestamp']),
-                    'load_avg': float(row['system_load_avg'])
-                }
-                if 'avionics_vcc' in row:
-                    health['avionics_vcc'] = float(row['avionics_vcc'])
-                elif 'board_vcc' in row:
-                    health['avionics_vcc'] = float(row['board_vcc'])
-                if 'main_vcc' in row:
-                    health['main_vcc'] = float(row['main_vcc'])
-                elif 'extern_volts' in row:
-                    health['main_vcc'] = float(row['extern_volts'])
-                if 'cell_vcc' in row:
-                    health['cell_vcc'] = float(row['cell_vcc'])
-                elif 'extern_cell_volts' in row:
-                    health['cell_vcc'] = float(row['extern_cell_volts'])
-                if 'main_amps' in row:
-                    health['main_amps'] = float(row['main_amps'])
-                elif 'extern_amps' in row:
-                    health['main_amps'] = float(row['extern_amps'])
-                if 'total_mah' in row:
-                    health['main_mah'] = float(row['total_mah'])
-                elif 'extern_current_mah' in row:
-                    health['main_mah'] = float(row['extern_current_mah'])
-                result['health'].append(health)
+    timestamp = data['/sensors/health/timestamp'][()].astype(float)
+    load_avg = data['/sensors/health/system_load_avg'][()].astype(float)
+    avionics_vcc = data['/sensors/health/avionics_vcc'][()].astype(float)
+    main_vcc = data['/sensors/health/main_vcc'][()].astype(float)
+    cell_vcc = data['/sensors/health/cell_vcc'][()].astype(float)
+    main_amps = data['/sensors/health/main_amps'][()].astype(float)
+    total_mah = data['/sensors/health/total_mah'][()].astype(float)
+    result['health'] = []
+    for i in range(len(timestamp)):
+        health = {
+            'time': timestamp[i][0],
+            'load_avg': load_avg[i][0],
+            'avionics_vcc': avionics_vcc[i][0],
+            'main_vcc': main_vcc[i][0],
+            'cell_vcc': cell_vcc[i][0],
+            'main_amps': main_amps[i][0],
+            'total_mah': total_mah[i][0]
+        }
+        result['health'].append(health)
 
     cal = imucal.Calibration()
     if os.path.exists(imucal_json):
