@@ -46,11 +46,6 @@ def load(path, recal_file=None):
         print('Notice: assuming umn1 .mat format')
         flight_data = umn1_mat.load(path)
         flight_format = 'umn1'
-    elif ext == '.h5':
-        # umn3 (hdf5)
-        print('Detected umn3 (hdf5) format.')
-        flight_data = umn3_hdf5.load(path)
-        flight_format = 'umn3'
     elif os.path.exists(ulog_path):
         # px4_ulog
         print('Detected px4 ulog (csv family of files) format.')
