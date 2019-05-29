@@ -18,11 +18,8 @@ def load(h5_filename):
     filepath = h5_filename
     flight_dir = os.path.dirname(filepath)
     
-    # Load Flight Data: ## IMPORTANT to have the .mat file in the
-    # flight_data and flight_info structures for this function ##
-    data = h5py.File(filepath)
-    #for keys in data:
-    #    print keys
+    # Open flight data log file:
+    data = h5py.File(filepath, 'r')
         
     # create data structures for ekf processing
     result = {}
@@ -353,7 +350,7 @@ def load(h5_filename):
             last_id = test_id
             
     dir = os.path.dirname(h5_filename)
-    print('dir:', dir)
+    # print('dir:', dir)
     
     filename = os.path.join(dir, 'imu-0.txt')
     f = open(filename, 'w')
