@@ -67,16 +67,25 @@ def load(h5_filename, recalibrate=None):
         result['imu'].append(imu)
 
     timestamp = data['/sensors/gps/timestamp'][()]
+    last_time = timestamp[0]
     unix_sec = data['/sensors/gps/unix_time_sec'][()]
     lat_deg = data['/sensors/gps/latitude_deg'][()]
     lon_deg = data['/sensors/gps/longitude_deg'][()]
     alt = data['/sensors/gps/altitude_m'][()]
+    last_alt = alt[0]
     vn = data['/sensors/gps/vn_ms'][()]
     ve = data['/sensors/gps/ve_ms'][()]
     vd = data['/sensors/gps/vd_ms'][()]
     sats = data['/sensors/gps/satellites'][()]
     result['gps'] = []
     for i in range(len(timestamp)):
+        dt = timestamp[i] - last_time
+        if dt > 0.001:
+            da = -(alt[i] - last_alt) / dt
+        else:
+            da = 0.0
+        last_time = timestamp[i]
+        last_alt = alt[i]
         if sats[i] > 5:
             gps = {
                 'time': timestamp[i],
@@ -87,6 +96,7 @@ def load(h5_filename, recalibrate=None):
                 'vn': vn[i],
                 've': ve[i],
                 'vd': vd[i],
+                'vd_est': da,
                 'sats': sats[i]
             }
             result['gps'].append(gps)
@@ -318,7 +328,7 @@ def load(h5_filename, recalibrate=None):
         result['health'].append(health)
 
     cal = imucal.Calibration()
-    if os.path.exists(imucal_json):
+    if False and os.path.exists(imucal_json):
         cal.load(imucal_json)
         print('back correcting imu data (to get original raw values)')
         cal.back_correct(result['imu'], result['filter'])
@@ -331,6 +341,22 @@ def load(h5_filename, recalibrate=None):
 
     return result
 
+# wipe this function ...
+#
+# if a calibration file exists, we can undo the IMU calibration math
+# and get back to the original raw sensor values.  This could be
+# useful for compiling additional raw calibration data from calibrated
+# flights.  Note: this function overwrites the logged IMU values with
+# 'raw' values, so use with caution
+def back_correct(imucal_json, data):
+    cal = imucal.Calibration()
+    if os.path.exists(imucal_json):
+        cal.load(imucal_json)
+        print('back correcting imu data (to get original raw values)')
+        cal.back_correct(data['imu'], data['filter'])
+    else:
+        print("Cannot find imu calibration file:", imucal_json)
+    
 def save_filter_result(filename, nav):
     keys = ['timestamp', 'latitude_deg', 'longitude_deg', 'altitude_m',
             'vn_ms', 've_ms', 'vd_ms', 'roll_deg', 'pitch_deg', 'heading_deg',
