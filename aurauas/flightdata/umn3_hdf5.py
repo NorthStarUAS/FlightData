@@ -158,13 +158,17 @@ def load(h5_filename):
     result['air'] = []
     airspeed = data['/Sensor-Processing/vIAS_ms'][()] * mps2kt
     altitude = data['/Sensor-Processing/Altitude_m'][()]
+    if '/Sensors/5Hole/Tip/Temperature_C' in data:
+        temp = data['/Sensors/5Hole/Tip/Temperature_C'][()]
     for i in range( size ):
         air_pt = {
             'time': timestamp[i][0],
             'airspeed': airspeed[i][0],
-            'altitude': altitude[i][0],
+            'alt_press': altitude[i][0],
             'alt_true': altitude[i][0]
         }
+        if '/Sensors/5Hole/Tip/Temperature_C' in data:
+            air_pt['temp'] = temp[i][0]
         result['air'].append(air_pt)
         
     result['filter'] = []
