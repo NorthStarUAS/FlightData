@@ -31,10 +31,10 @@ def load(path, recal_file=None):
                 print("Detected AuraUAS hdf5 format.")
                 flight_data = aura_hdf5.load(path, recal_file)
                 flight_format = 'aura_hdf5'
-            else:
-                print('Detected UMN3 (hdf5) format.')
-                flight_data = umn3_hdf5.load(path)
-                flight_format = 'umn3'
+        else:
+            print('Detected UMN3 (hdf5) format.')
+            flight_data = umn3_hdf5.load(path)
+            flight_format = 'umn3'
     if os.path.exists(aura_csv_path):
         # aura csv format
         print('Detected aura csv format.')
