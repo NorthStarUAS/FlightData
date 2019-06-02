@@ -5,20 +5,20 @@ import os
 import math
 import re
 
-from . import imucal
+ # from . import imucal
 
 d2r = math.pi / 180.0
 
 # empty class we'll fill in with data members
 # class Record: pass (deprecated)
 
-def load(flight_dir, recalibrate=None):
+def load(flight_dir):
     result = {}
 
     # load imu/gps data files
     event_file = os.path.join(flight_dir, "event-0.csv")
     imu_file = os.path.join(flight_dir, "imu-0.csv")
-    imucal_json = os.path.join(flight_dir, "imucal.json")
+    # imucal_json = os.path.join(flight_dir, "imucal.json")
     gps_file = os.path.join(flight_dir, "gps-0.csv")
     air_file = os.path.join(flight_dir, "air-0.csv")
     filter_file = os.path.join(flight_dir, "filter-0.csv")
@@ -293,17 +293,24 @@ def load(flight_dir, recalibrate=None):
                     health['main_mah'] = float(row['extern_current_mah'])
                 result['health'].append(health)
 
-    cal = imucal.Calibration()
-    if os.path.exists(imucal_json):
-        cal.load(imucal_json)
-        print('back correcting imu data (to get original raw values)')
-        cal.back_correct(result['imu'], result['filter'])
+    # let us not do this by default, but this could be done externally if
+    # the calling script wanted original 'raw' values ... which is probably
+    # only true of the calling script is try to do a raw calibration sort
+    # of thing
+    #
+    # cal = imucal.Calibration()
+    # if os.path.exists(imucal_json):
+    #     cal.load(imucal_json)
+    #     print('back correcting imu data (to get original raw values)')
+    #     cal.back_correct(result['imu'], result['filter'])
 
-    if recalibrate:
-        print('recalibrating imu data using alternate calibration file:', recalibrate)
-        rcal = imucal.Calibration()
-        rcal.load(recalibrate)
-        result['imu'] = rcal.correct(result['imu'])
+    # let us not do this either
+    #
+    # if recalibrate:
+    #     print('recalibrating imu data using alternate calibration file:', recalibrate)
+    #     rcal = imucal.Calibration()
+    #     rcal.load(recalibrate)
+    #     result['imu'] = rcal.correct(result['imu'])
 
     return result
 

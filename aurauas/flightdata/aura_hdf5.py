@@ -4,14 +4,12 @@ import os
 import math
 import re
 
-from . import imucal
-
 d2r = math.pi / 180.0
 
 # empty class we'll fill in with data members
 # class Record: pass (deprecated)
 
-def load(h5_filename, recalibrate=None):
+def load(h5_filename):
     filepath = h5_filename
     flight_dir = os.path.dirname(filepath)
 
@@ -19,10 +17,6 @@ def load(h5_filename, recalibrate=None):
     data = h5py.File(filepath)
 
     result = {}
-
-    # load imu/gps data files
-    imucal_json = os.path.join(flight_dir, "imucal.json")
-
     timestamp = data['/events/timestamp'][()]
     message = data['/events/message'][()]
     result['event'] = []
@@ -327,36 +321,8 @@ def load(h5_filename, recalibrate=None):
         }
         result['health'].append(health)
 
-    cal = imucal.Calibration()
-    if False and os.path.exists(imucal_json):
-        cal.load(imucal_json)
-        print('back correcting imu data (to get original raw values)')
-        cal.back_correct(result['imu'], result['filter'])
-
-    if recalibrate:
-        print('recalibrating imu data using alternate calibration file:', recalibrate)
-        rcal = imucal.Calibration()
-        rcal.load(recalibrate)
-        result['imu'] = rcal.correct(result['imu'])
-
     return result
 
-# wipe this function ...
-#
-# if a calibration file exists, we can undo the IMU calibration math
-# and get back to the original raw sensor values.  This could be
-# useful for compiling additional raw calibration data from calibrated
-# flights.  Note: this function overwrites the logged IMU values with
-# 'raw' values, so use with caution
-def back_correct(imucal_json, data):
-    cal = imucal.Calibration()
-    if os.path.exists(imucal_json):
-        cal.load(imucal_json)
-        print('back correcting imu data (to get original raw values)')
-        cal.back_correct(data['imu'], data['filter'])
-    else:
-        print("Cannot find imu calibration file:", imucal_json)
-    
 def save_filter_result(filename, nav):
     keys = ['timestamp', 'latitude_deg', 'longitude_deg', 'altitude_m',
             'vn_ms', 've_ms', 'vd_ms', 'roll_deg', 'pitch_deg', 'heading_deg',

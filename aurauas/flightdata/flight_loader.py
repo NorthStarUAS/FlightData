@@ -11,7 +11,7 @@ from . import sentera2
 from . import umn1_mat
 from . import umn3_hdf5
 
-def load(path, recal_file=None):
+def load(path):
     flight_data = {}
     flight_format = None
 
@@ -29,7 +29,7 @@ def load(path, recal_file=None):
             md = data["/metadata"]
             if md.attrs.get("format", "") == "AuraUAS":
                 print("Detected AuraUAS hdf5 format.")
-                flight_data = aura_hdf5.load(path, recal_file)
+                flight_data = aura_hdf5.load(path)
                 flight_format = 'aura_hdf5'
         else:
             print('Detected UMN3 (hdf5) format.')
@@ -38,7 +38,7 @@ def load(path, recal_file=None):
     if os.path.exists(aura_csv_path):
         # aura csv format
         print('Detected aura csv format.')
-        flight_data = aura_csv.load(path, recal_file)
+        flight_data = aura_csv.load(path)
         flight_format = 'aura_csv'
     elif ext == '.mat':
         # umn1
