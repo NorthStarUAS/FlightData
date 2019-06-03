@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
 setup(name='aurauas-flightdata',
       version='1.2',
@@ -9,6 +9,5 @@ setup(name='aurauas-flightdata',
       author_email='curtolson@flightgear.org',
       url='https://github.com/AuraUAS',
       #package_dir = {'': 'aurauas'},
-      #packages = find_packages('aurauas'),
-      packages = ['aurauas', 'aurauas.flightdata', 'aurauas.weather']
+      packages = ['aurauas_flightdata']
      )
