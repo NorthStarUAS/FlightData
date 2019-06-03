@@ -16,6 +16,7 @@ def load(path):
     flight_format = None
 
     (root, ext) = os.path.splitext(path)
+    aura_hdf5_path = os.path.join(path, 'flight.h5')
     aura_csv_path = os.path.join(path, 'imu-0.csv')
     ulog_path = path + '_sensor_combined_0.csv'
     sentera_path = os.path.join(path, 'imu.csv')
@@ -35,7 +36,12 @@ def load(path):
             print('Detected UMN3 (hdf5) format.')
             flight_data = umn3_hdf5.load(path)
             flight_format = 'umn3'
-    if os.path.exists(aura_csv_path):
+    elif os.path.exists(aura_hdf5_path):
+        # aura hdf5 format
+        print("Detected AuraUAS hdf5 format.")
+        flight_data = aura_hdf5.load(aura_hdf5_path)
+        flight_format = 'aura_hdf5'
+    elif os.path.exists(aura_csv_path):
         # aura csv format
         print('Detected aura csv format.')
         flight_data = aura_csv.load(path)
