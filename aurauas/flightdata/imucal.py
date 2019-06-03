@@ -107,8 +107,8 @@ class Calibration():
             self.mag_affine_inv = np.linalg.inv(self.mag_affine)
         else:
             print("mag_affine requires 16 values")
-        #print 'mag_affine:\n', self.mag_affine
-        #print 'mag_affine_inv:\n', self.mag_affine_inv
+        #print('mag_affine:\n', self.mag_affine)
+        #print('mag_affine_inv:\n', self.mag_affine_inv)
 
         return True
     
@@ -245,6 +245,7 @@ class Calibration():
                 imu['hx'] = hf[0]
                 imu['hy'] = hf[1]
                 imu['hz'] = hf[2]
+                # print("bc mag:", hf)
             else:
                 imu['hx'] = imu['hx']
                 imu['hy'] = imu['hy']
