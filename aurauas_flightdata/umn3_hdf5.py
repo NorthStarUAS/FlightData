@@ -213,43 +213,44 @@ def load(h5_filename):
         }
         if abs(nav['lat']) > 0.0001 and abs(nav['lon']) > 0.0001:
             result['filter'].append(nav)
-            
-    # load filter (post process) records if they exist (for comparison
-    # purposes)
-    filter_post = os.path.join(flight_dir, "filter-post.csv")
-    if os.path.exists(filter_post):
-        print('Also loading:', filter_post, '(because it exists)')
-        result['filter_post'] = []
-        with open(filter_post, 'r') as ffilter:
-            reader = csv.DictReader(ffilter)
-            for row in reader:
-                lat = float(row['latitude_deg'])
-                lon = float(row['longitude_deg'])
-                if abs(lat) > 0.0001 and abs(lon) > 0.0001:
-                    psi_deg = float(row['heading_deg'])
-                    if psi_deg > 180.0:
-                        psi_deg = psi_deg - 360.0
-                    if psi_deg < -180.0:
-                        psi_deg = psi_deg + 360.0
-                    nav = {
-                        'time': float(row['timestamp']),
-                        'lat': lat*d2r,
-                        'lon': lon*d2r,
-                        'alt': float(row['altitude_m']),
-                        'vn': float(row['vn_ms']),
-                        've': float(row['ve_ms']),
-                        'vd': float(row['vd_ms']),
-                        'phi': float(row['roll_deg'])*d2r,
-                        'the': float(row['pitch_deg'])*d2r,
-                        'psi': psi_deg*d2r,
-                        'p_bias': float(row['p_bias']),
-                        'q_bias': float(row['q_bias']),
-                        'r_bias': float(row['r_bias']),
-                        'ax_bias': float(row['ax_bias']),
-                        'ay_bias': float(row['ay_bias']),
-                        'az_bias': float(row['az_bias'])
-                    }
-                    result['filter_post'].append(nav)
+
+    if False:
+        # load filter (post process) records if they exist (for comparison
+        # purposes)
+        filter_post = os.path.join(flight_dir, "filter-post.csv")
+        if os.path.exists(filter_post):
+            print('Also loading:', filter_post, '(because it exists)')
+            result['filter_post'] = []
+            with open(filter_post, 'r') as ffilter:
+                reader = csv.DictReader(ffilter)
+                for row in reader:
+                    lat = float(row['latitude_deg'])
+                    lon = float(row['longitude_deg'])
+                    if abs(lat) > 0.0001 and abs(lon) > 0.0001:
+                        psi_deg = float(row['heading_deg'])
+                        if psi_deg > 180.0:
+                            psi_deg = psi_deg - 360.0
+                        if psi_deg < -180.0:
+                            psi_deg = psi_deg + 360.0
+                        nav = {
+                            'time': float(row['timestamp']),
+                            'lat': lat*d2r,
+                            'lon': lon*d2r,
+                            'alt': float(row['altitude_m']),
+                            'vn': float(row['vn_ms']),
+                            've': float(row['ve_ms']),
+                            'vd': float(row['vd_ms']),
+                            'phi': float(row['roll_deg'])*d2r,
+                            'the': float(row['pitch_deg'])*d2r,
+                            'psi': psi_deg*d2r,
+                            'p_bias': float(row['p_bias']),
+                            'q_bias': float(row['q_bias']),
+                            'r_bias': float(row['r_bias']),
+                            'ax_bias': float(row['ax_bias']),
+                            'ay_bias': float(row['ay_bias']),
+                            'az_bias': float(row['az_bias'])
+                        }
+                        result['filter_post'].append(nav)
 
     result['pilot'] = []
     if '/Control/cmdRoll_rads' in data:
