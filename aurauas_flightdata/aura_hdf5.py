@@ -103,6 +103,7 @@ def load(h5_filename):
     alt_true = data['/sensors/air/altitude_true_m'][()]
     wind_dir = data['/sensors/air/wind_dir_deg'][()]
     wind_speed = data['/sensors/air/wind_speed_kt'][()]
+    pitot_scale = data['/sensors/air/pitot_scale_factor'][()]
     result['air'] = []
     for i in range(len(timestamp)):
         air = {
@@ -114,7 +115,8 @@ def load(h5_filename):
             'alt_press': alt_press[i],
             'alt_true': alt_true[i],
             'wind_dir': wind_dir[i],
-            'wind_speed': wind_speed[i]
+            'wind_speed': wind_speed[i],
+            'pitot_scale': pitot_scale[i]
         }
         result['air'].append( air )
 
