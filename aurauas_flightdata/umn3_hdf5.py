@@ -327,15 +327,16 @@ def load(h5_filename):
 
     result['event'] = []
     socEngage = data['/Mission/socEngage'][()]
-    indxTest = data['/Mission/testID'][()]
+    indxTest = data['/Mission/testID'][()] 
     exciteMode = data['/Mission/testSel'][()]
+    exciteEngage = data['/Mission/excitEngage'][()]
     last_soc = 0
     last_id = -1
     last_excite = 0
     for i in range( size ):
         soc = socEngage[i][0]
         test_id = indxTest[i][0]
-        excite = exciteMode[i][0]
+        excite = exciteEngage[i][0]
         if soc != last_soc:
             event = {
                 'time': timestamp[i][0]
@@ -353,6 +354,17 @@ def load(h5_filename):
             event['message'] = 'Test ID = %d' % test_id
             result['event'].append(event)
             last_id = test_id
+        if excite != last_excite:
+            event = {
+                'time': timestamp[i][0]
+            }
+            if excite:
+                event['message'] = "Excitation Start"
+            else:
+                event['message'] = "Excitation End"
+            result['event'].append(event)
+
+            last_excite = excite
             
     dir = os.path.dirname(h5_filename)
     # print('dir:', dir)
