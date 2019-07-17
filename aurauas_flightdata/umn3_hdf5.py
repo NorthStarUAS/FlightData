@@ -114,26 +114,28 @@ def load(h5_filename):
                           hour[0][0], minute[0][0], second[0][0])
     unixbase = calendar.timegm(d.timetuple()) - timestamp[0][0]
 
-    last_alt = alt[0][0]
-    last_time = timestamp[0][0]
-    last_tow = tow[0][0]
-    vd_list = []
-    vd_est = 0.0
-    for i in range( size ):
-        if tow[i][0] != last_tow:
-            print("NOTICE: over writing gps down velocity with differentiated alt as a test for Huginn flight #02")
-            dt = timestamp[i][0] - last_time
-            da = alt[i][0] - last_alt
-            print("sec: %.2f" % tow[i][0], "t: %.3f" % timestamp[i][0], "dt: %.3f" % dt,
-                  "alt: %.2f" % alt[i][0], "da: %.2f" % da)
-            if dt > 0.001:
-                vd_est = -da / dt
-            else:
-                vd_est = 0.0
-            last_alt = alt[i][0]
-            last_time = timestamp[i][0]
-            last_tow = tow[i][0]
-        vd_list.append(vd_est)
+    est_vd = False
+    if est_vd:
+        last_alt = alt[0][0]
+        last_time = timestamp[0][0]
+        last_tow = tow[0][0]
+        vd_list = []
+        vd_est = 0.0
+        print("NOTICE: estimating gps velocity by differentiating altitude.")
+        for i in range( size ):
+            if tow[i][0] != last_tow:
+                dt = timestamp[i][0] - last_time
+                da = alt[i][0] - last_alt
+                print("sec: %.2f" % tow[i][0], "t: %.3f" % timestamp[i][0], "dt: %.3f" % dt,
+                      "alt: %.2f" % alt[i][0], "da: %.2f" % da)
+                if dt > 0.001:
+                    vd_est = -da / dt
+                else:
+                    vd_est = 0.0
+                last_alt = alt[i][0]
+                last_time = timestamp[i][0]
+                last_tow = tow[i][0]
+            vd_list.append(vd_est)
         
     for i in range( size ):
         lat = lat_rad[i][0] * r2d
@@ -142,6 +144,10 @@ def load(h5_filename):
         if abs(lat - last_gps_lat) > 0.0000000001 or abs(lon - last_gps_lon) > 0.0000000000001:
             last_gps_lat = lat
             last_gps_lon = lon
+            if est_vd:
+                vd_pt = vd_list[i]
+            else:
+                vd_pt = vd[i][0]
             gps_pt = {
                 'time': timestamp[i][0],
                 'unix_sec': unixbase + timestamp[i][0],
@@ -150,7 +156,7 @@ def load(h5_filename):
                 'alt': alt[i][0],
                 'vn': vn[i][0],
                 've': ve[i][0],
-                'vd': vd_list[i],
+                'vd': vd_pt,
                 'sats': int(sats[i][0])
             }
             result['gps'].append(gps_pt)
