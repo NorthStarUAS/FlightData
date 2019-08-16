@@ -62,7 +62,7 @@ class InterpolationGroup():
     def query(self, t, key):
         return self.group[key].query(t)
 
-# emulate realtime linaar processing of a data set
+# emulate realtime linear processing of a data set
 class IterateGroup():
     def __init__(self, data):
         self.data = data

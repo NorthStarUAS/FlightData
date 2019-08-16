@@ -105,7 +105,8 @@ def load(flight_dir):
                 'alt_press': float(row['altitude_smoothed_m']),
                 'alt_true': float(row['altitude_true_m']),
                 'wind_dir': float(row['wind_dir_deg']),
-                'wind_speed': float(row['wind_speed_kt'])
+                'wind_speed': float(row['wind_speed_kt']),
+                'pitot_scale': float(row['pitot_scale_factor'])
             }
             result['air'].append( air )
 

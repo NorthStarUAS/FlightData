@@ -284,6 +284,11 @@ def load(h5_filename):
     pitch = data['/autopilot/pitch_deg'][()]
     speed = data['/autopilot/airspeed_kt'][()]
     ground = data['/autopilot/altitude_ground_m'][()]
+    current_task_id = data['/autopilot/current_task_id'][()]
+    target_waypoint_idx = data['/autopilot/target_waypoint_idx'][()]
+    wpt_index = data['/autopilot/wpt_index'][()]
+    wpt_latitude_deg = data['/autopilot/wpt_latitude_deg'][()]
+    wpt_longitude_deg = data['/autopilot/wpt_longitude_deg'][()]
     result['ap'] = []
     for i in range(len(timestamp)):
         hdgx = math.cos(hdg[i]*d2r)
@@ -299,7 +304,12 @@ def load(h5_filename):
             'alt': alt[i],
             'pitch': pitch[i],
             'speed': speed[i],
-            'ground': ground[i]
+            'ground': ground[i],
+            'current_task_id': current_task_id[i],
+            'target_waypoint_idx': target_waypoint_idx[i],
+            'wpt_index': wpt_index[i],
+            'wpt_latitude_deg': wpt_latitude_deg[i],
+            'wpt_longitude_deg': wpt_longitude_deg[i]
         }
         result['ap'].append(ap)
 
