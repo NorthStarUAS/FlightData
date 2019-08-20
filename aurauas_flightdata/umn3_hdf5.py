@@ -28,7 +28,6 @@ def load(h5_filename):
     last_gps_lat = -9999.0
     
     size = len(data['/Sensors/Fmu/Time_us'])
-
     timestamp = data['/Sensors/Fmu/Time_us'][()].astype(float) * 1e-6
 
     result['imu'] = []
@@ -259,18 +258,27 @@ def load(h5_filename):
                         result['filter_post'].append(nav)
 
     result['pilot'] = []
-    if '/Control/cmdRoll_rads' in data:
+    if '/Sensors/Sbus/Channels/3' in data:
+        roll = data['/Sensors/Sbus/Channels/3'][()]
+    elif '/Control/cmdRoll_rads' in data:
         roll = data['/Control/cmdRoll_rads'][()]
     elif '/Control/cmdRoll_rps' in data:
         roll = data['/Control/cmdRoll_rps'][()]
-    if '/Control/cmdPitch_rads' in data:
+        
+    if '/Sensors/Sbus/Channels/4' in data:
+        pitch = data['/Sensors/Sbus/Channels/4'][()]
+    elif '/Control/cmdPitch_rads' in data:
         pitch = data['/Control/cmdPitch_rads'][()]
     elif '/Control/cmdPitch_rps' in data:
         pitch = data['/Control/cmdPitch_rps'][()]
-    if '/Control/cmdYaw_rads' in data:
+        
+    if '/Sensors/Sbus/Channels/5' in data:
+        yaw = data['/Sensors/Sbus/Channels/5'][()]
+    elif '/Control/cmdYaw_rads' in data:
         yaw = data['/Control/cmdYaw_rads'][()]
     elif '/Control/cmdYaw_rps' in data:
         yaw = data['/Control/cmdYaw_rps'][()]
+        
     motor = data['/Control/cmdMotor_nd'][()]
     flaps = data['/Control/cmdFlap_nd'][()]
     auto = data['/Mission/socEngage'][()]

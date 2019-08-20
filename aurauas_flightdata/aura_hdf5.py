@@ -285,7 +285,10 @@ def load(h5_filename):
     speed = data['/autopilot/airspeed_kt'][()]
     ground = data['/autopilot/altitude_ground_m'][()]
     current_task_id = data['/autopilot/current_task_id'][()]
-    task_attrib = data['/autopilot/task_attrib'][()]
+    if '/autopilot/task_attrib' in data:
+        task_attrib = data['/autopilot/task_attrib'][()]
+    else:
+        task_attrib = None
     route_size = data['/autopilot/route_size'][()]
     target_waypoint_idx = data['/autopilot/target_waypoint_idx'][()]
     wpt_index = data['/autopilot/wpt_index'][()]
@@ -295,6 +298,10 @@ def load(h5_filename):
     for i in range(len(timestamp)):
         hdgx = math.cos(hdg[i]*d2r)
         hdgy = math.sin(hdg[i]*d2r)
+        if task_attrib != None:
+            attrib = task_attrib[i]
+        else:
+            attrib = 0
         ap = {
             'time': timestamp[i],
             'master_switch': master[i],
@@ -308,7 +315,7 @@ def load(h5_filename):
             'speed': speed[i],
             'ground': ground[i],
             'current_task_id': current_task_id[i],
-            'task_attrib': task_attrib[i],
+            'task_attrib': attrib,
             'route_size': route_size[i],
             'target_waypoint_idx': target_waypoint_idx[i],
             'wpt_index': wpt_index[i],
