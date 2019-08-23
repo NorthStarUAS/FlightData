@@ -298,7 +298,7 @@ def load(h5_filename):
     for i in range(len(timestamp)):
         hdgx = math.cos(hdg[i]*d2r)
         hdgy = math.sin(hdg[i]*d2r)
-        if task_attrib != None:
+        if task_attrib is None:
             attrib = task_attrib[i]
         else:
             attrib = 0
