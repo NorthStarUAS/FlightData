@@ -24,8 +24,8 @@ def load(h5_filename):
     # create data structures for ekf processing
     result = {}
     
-    last_gps_lon = -9999.0
-    last_gps_lat = -9999.0
+    last_gps_lon = 0.0
+    last_gps_lat = 0.0
     
     size = len(data['/Sensors/Fmu/Time_us'])
     timestamp = data['/Sensors/Fmu/Time_us'][()].astype(float) * 1e-6
@@ -84,6 +84,8 @@ def load(h5_filename):
             'hz': hz,
             'temp': temp[i][0]
         }
+        if imu_pt['time'] > 10000000:
+            continue
         if not gx2 is None:
             imu_pt['p'] -= gx2[i][0]
         if not gx10 is None:
@@ -109,9 +111,12 @@ def load(h5_filename):
     hour = data['/Sensors/uBlox/Hour'][()]
     minute = data['/Sensors/uBlox/Minute'][()]
     second = data['/Sensors/uBlox/Second'][()]
-    d = datetime.datetime(year[0][0], month[0][0], day[0][0],
-                          hour[0][0], minute[0][0], second[0][0])
-    unixbase = calendar.timegm(d.timetuple()) - timestamp[0][0]
+    if year[0][0] > 0:
+        d = datetime.datetime(year[0][0], month[0][0], day[0][0],
+                              hour[0][0], minute[0][0], second[0][0])
+        unixbase = calendar.timegm(d.timetuple()) - timestamp[0][0]
+    else:
+        unixbase = 0
 
     est_vd = False
     if est_vd:
@@ -161,37 +166,45 @@ def load(h5_filename):
             result['gps'].append(gps_pt)
             
     result['air'] = []
-    airspeed = data['/Sensor-Processing/vIAS_ms'][()] * mps2kt
-    altitude = data['/Sensor-Processing/Altitude_m'][()]
+    if '/Sensor-Processing/vIAS_ms' in data:
+        airspeed = data['/Sensor-Processing/vIAS_ms'][()] * mps2kt
+    if '/Sensor-Processing/Altitude_m' in data:
+        altitude = data['/Sensor-Processing/Altitude_m'][()]
     if '/Sensors/5Hole/Tip/Temperature_C' in data:
         temp = data['/Sensors/5Hole/Tip/Temperature_C'][()]
     for i in range( size ):
         air_pt = {
             'time': timestamp[i][0],
-            'airspeed': airspeed[i][0],
-            'alt_press': altitude[i][0],
-            'alt_true': altitude[i][0]
         }
+        if '/Sensor-Processing/vIAS_ms' in data:
+            air_pt['airspeed'] = airspeed[i][0]
+        if '/Sensor-Processing/Altitude_m' in data:
+            air_pt['alt_press'] = altitude[i][0]
+            air_pt['alt_true'] = altitude[i][0]
         if '/Sensors/5Hole/Tip/Temperature_C' in data:
             air_pt['temp'] = temp[i][0]
         result['air'].append(air_pt)
         
     result['filter'] = []
-    lat = data['/Sensor-Processing/Baseline/INS/Latitude_rad'][()]
-    lon = data['/Sensor-Processing/Baseline/INS/Longitude_rad'][()]
-    alt = data['/Sensor-Processing/Baseline/INS/Altitude_m'][()]
-    vn = data['/Sensor-Processing/Baseline/INS/NorthVelocity_ms'][()]
-    ve = data['/Sensor-Processing/Baseline/INS/EastVelocity_ms'][()]
-    vd = data['/Sensor-Processing/Baseline/INS/DownVelocity_ms'][()]
-    roll = data['/Sensor-Processing/Baseline/INS/Roll_rad'][()]
-    pitch = data['/Sensor-Processing/Baseline/INS/Pitch_rad'][()]
-    yaw = data['/Sensor-Processing/Baseline/INS/Heading_rad'][()]
-    gbx = data['/Sensor-Processing/Baseline/INS/GyroXBias_rads'][()]
-    gby = data['/Sensor-Processing/Baseline/INS/GyroYBias_rads'][()]
-    gbz = data['/Sensor-Processing/Baseline/INS/GyroZBias_rads'][()]
-    abx = data['/Sensor-Processing/Baseline/INS/AccelXBias_mss'][()]
-    aby = data['/Sensor-Processing/Baseline/INS/AccelYBias_mss'][()]
-    abz = data['/Sensor-Processing/Baseline/INS/AccelZBias_mss'][()]
+    if '/Sensor-Processing/Baseline/INS' in data:
+        path = '/Sensor-Processing/Baseline/INS'
+    elif '/Sensor-Processing/Standard' in data:
+        path = '/Sensor-Processing/Standard'
+    lat = data[path + '/Latitude_rad'][()]
+    lon = data[path + '/Longitude_rad'][()]
+    alt = data[path + '/Altitude_m'][()]
+    vn = data[path + '/NorthVelocity_ms'][()]
+    ve = data[path + '/EastVelocity_ms'][()]
+    vd = data[path + '/DownVelocity_ms'][()]
+    roll = data[path + '/Roll_rad'][()]
+    pitch = data[path + '/Pitch_rad'][()]
+    yaw = data[path + '/Heading_rad'][()]
+    gbx = data[path + '/GyroXBias_rads'][()]
+    gby = data[path + '/GyroYBias_rads'][()]
+    gbz = data[path + '/GyroZBias_rads'][()]
+    abx = data[path + '/AccelXBias_mss'][()]
+    aby = data[path + '/AccelYBias_mss'][()]
+    abz = data[path + '/AccelZBias_mss'][()]
     for i in range( size ):
         psi = yaw[i][0]
         if psi > math.pi:
@@ -278,9 +291,17 @@ def load(h5_filename):
         yaw = data['/Control/cmdYaw_rads'][()]
     elif '/Control/cmdYaw_rps' in data:
         yaw = data['/Control/cmdYaw_rps'][()]
+
+    if '/Sensors/Sbus/Channels/7' in data:
+        motor = data['/Sensors/Sbus/Channels/7'][()]
+    elif '/Control/cmdMotor_nd' in data:
+        motor = data['/Control/cmdMotor_nd'][()]
         
-    motor = data['/Control/cmdMotor_nd'][()]
-    flaps = data['/Control/cmdFlap_nd'][()]
+    if '/Sensors/Sbus/Channels/6' in data:
+        flaps = data['/Sensors/Sbus/Channels/6'][()]
+    elif '/Control/cmdFlap_nd' in data:
+        flaps = data['/Control/cmdFlap_nd'][()]
+        
     auto = data['/Mission/socEngage'][()]
     for i in range( size ):
         pilot = {
@@ -311,21 +332,39 @@ def load(h5_filename):
         result['act'].append(act)
                 
     result['ap'] = []
-    roll = data['/Control/refPhi_rad'][()]
-    pitch = data['/Control/refTheta_rad'][()]
-    vel = data['/Control/refV_ms'][()]
+    if '/Control/refPhi_rad' in data:
+        roll = data['/Control/refPhi_rad'][()]
+    else:
+        roll = None
+    if '/Control/refTheta_rad' in data:
+        pitch = data['/Control/refTheta_rad'][()]
+    else:
+        pitch = None
+    if '/Control/refV_ms' in data:
+        vel = data['/Control/refV_ms'][()]
+    else:
+        vel = None
     for i in range( size ):
         ap = {
             'time': timestamp[i][0],
             'master_switch': int(auto[i][0] > 0),
             'pilot_pass_through': int(0),
             'hdg': 0.0,
-            'roll': roll[i][0] * r2d,
             'alt': 0.0,
-            'pitch': pitch[i][0] * r2d,
-            'speed': vel[i][0] * mps2kt,
             'ground': 0.0
         }
+        if not roll is None:
+            ap['roll'] = roll[i][0] * r2d
+        else:
+            ap['roll'] = 0.0
+        if not pitch is None:
+            ap['pitch'] = pitch[i][0] * r2d
+        else:
+            ap['pitch'] = 0.0
+        if not vel is None:
+            ap['speed'] = vel[i][0] * mps2kt
+        else:
+            ap['speed'] = 0.0
         result['ap'].append(ap)
 
     result['health'] = []
@@ -341,8 +380,11 @@ def load(h5_filename):
 
     result['event'] = []
     socEngage = data['/Mission/socEngage'][()]
-    indxTest = data['/Mission/testID'][()] 
-    exciteMode = data['/Mission/testSel'][()]
+    if '/Mission/testPtID' in data:
+        indxTest = data['/Mission/testPtID'][()] 
+    elif '/Mission/testID' in data:
+        indxTest = data['/Mission/testID'][()] 
+    #exciteMode = data['/Mission/testSel'][()]
     exciteEngage = data['/Mission/excitEngage'][()]
     last_soc = 0
     last_id = -1
