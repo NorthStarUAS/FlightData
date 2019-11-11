@@ -101,6 +101,8 @@ def load(h5_filename):
     airspeed = data['/sensors/air/airspeed_smoothed_kt'][()]
     alt_press = data['/sensors/air/altitude_smoothed_m'][()]
     alt_true = data['/sensors/air/altitude_true_m'][()]
+    tecs_error_total = data['/sensors/air/tecs_error_total'][()]
+    tecs_error_diff = data['/sensors/air/tecs_error_diff'][()]
     wind_dir = data['/sensors/air/wind_dir_deg'][()]
     wind_speed = data['/sensors/air/wind_speed_kt'][()]
     pitot_scale = data['/sensors/air/pitot_scale_factor'][()]
@@ -114,6 +116,8 @@ def load(h5_filename):
             'airspeed': airspeed[i],
             'alt_press': alt_press[i],
             'alt_true': alt_true[i],
+            'tecs_error_total': tecs_error_total[i],
+            'tecs_error_diff': tecs_error_diff[i],
             'wind_dir': wind_dir[i],
             'wind_speed': wind_speed[i],
             'pitot_scale': pitot_scale[i]
@@ -284,6 +288,7 @@ def load(h5_filename):
     pitch = data['/autopilot/pitch_deg'][()]
     speed = data['/autopilot/airspeed_kt'][()]
     ground = data['/autopilot/altitude_ground_m'][()]
+    tecs_tot = data['/autopilot/tecs_target_tot'][()]
     current_task_id = data['/autopilot/current_task_id'][()]
     if '/autopilot/task_attrib' in data:
         task_attrib = data['/autopilot/task_attrib'][()]
@@ -314,6 +319,7 @@ def load(h5_filename):
             'pitch': pitch[i],
             'speed': speed[i],
             'ground': ground[i],
+            'tecs_target_tot': tecs_tot[i],
             'current_task_id': current_task_id[i],
             'task_attrib': attrib,
             'route_size': route_size[i],
