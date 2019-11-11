@@ -166,8 +166,12 @@ def load(h5_filename):
             result['gps'].append(gps_pt)
             
     result['air'] = []
-    if '/Sensor-Processing/vIAS_ms' in data:
+    if '/Sensor-Processing/Standard/vIAS_ms' in data:
+        airspeed = data['/Sensor-Processing/Standard/vIAS_ms'][()] * mps2kt
+    elif '/Sensor-Processing/vIAS_ms' in data:
         airspeed = data['/Sensor-Processing/vIAS_ms'][()] * mps2kt
+    else:
+        airspeed = None
     if '/Sensor-Processing/Altitude_m' in data:
         altitude = data['/Sensor-Processing/Altitude_m'][()]
     if '/Sensors/5Hole/Tip/Temperature_C' in data:
@@ -176,7 +180,7 @@ def load(h5_filename):
         air_pt = {
             'time': timestamp[i][0],
         }
-        if '/Sensor-Processing/vIAS_ms' in data:
+        if not airspeed is None:
             air_pt['airspeed'] = airspeed[i][0]
         if '/Sensor-Processing/Altitude_m' in data:
             air_pt['alt_press'] = altitude[i][0]
