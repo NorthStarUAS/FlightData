@@ -215,6 +215,8 @@ def load(h5_filename):
             psi -= 2*math.pi
         if psi < -math.pi:
             psi += 2*math.pi
+        psix = math.cos(psi)
+        psiy = math.sin(psi)
         nav = {
             'time': timestamp[i][0],
             'lat': lat[i][0],
@@ -226,6 +228,8 @@ def load(h5_filename):
             'phi': roll[i][0],
             'the': pitch[i][0],
             'psi': psi,
+            'psix': psix,
+            'psiy': psiy,
             'p_bias': gbx[i][0],
             'q_bias': gby[i][0],
             'r_bias': gbz[i][0],
