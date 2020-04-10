@@ -290,8 +290,8 @@ def load(h5_filename):
     ground = data['/autopilot/altitude_ground_m'][()]
     tecs_tot = data['/autopilot/tecs_target_tot'][()]
     current_task_id = data['/autopilot/current_task_id'][()]
-    if '/autopilot/task_attrib' in data:
-        task_attrib = data['/autopilot/task_attrib'][()]
+    if '/autopilot/task_attribute' in data:
+        task_attrib = data['/autopilot/task_attribute'][()]
     else:
         task_attrib = None
     route_size = data['/autopilot/route_size'][()]
