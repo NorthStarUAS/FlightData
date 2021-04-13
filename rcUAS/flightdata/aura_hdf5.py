@@ -14,7 +14,7 @@ def load(h5_filename):
     flight_dir = os.path.dirname(filepath)
 
     # open the hdf5 file
-    data = h5py.File(filepath)
+    data = h5py.File(filepath, 'r')
 
     result = {}
     timestamp = data['/events/timestamp'][()]
@@ -39,15 +39,17 @@ def load(h5_filename):
     ax = data['/sensors/imu/ax_mps_sec'][()]
     ay = data['/sensors/imu/ay_mps_sec'][()]
     az = data['/sensors/imu/az_mps_sec'][()]
-    ax_raw = data['/sensors/imu/ax_raw'][()]
-    ay_raw = data['/sensors/imu/ay_raw'][()]
-    az_raw = data['/sensors/imu/az_raw'][()]
+    if '/sensors/imu/ax_raw' in data:
+        ax_raw = data['/sensors/imu/ax_raw'][()]
+        ay_raw = data['/sensors/imu/ay_raw'][()]
+        az_raw = data['/sensors/imu/az_raw'][()]
     hx = data['/sensors/imu/hx'][()]
     hy = data['/sensors/imu/hy'][()]
     hz = data['/sensors/imu/hz'][()]
-    hx_raw = data['/sensors/imu/hx_raw'][()]
-    hy_raw = data['/sensors/imu/hy_raw'][()]
-    hz_raw = data['/sensors/imu/hz_raw'][()]
+    if '/sensors/imu/hx_raw' in data:
+        hx_raw = data['/sensors/imu/hx_raw'][()]
+        hy_raw = data['/sensors/imu/hy_raw'][()]
+        hz_raw = data['/sensors/imu/hz_raw'][()]
     temp = data['/sensors/imu/temp_C'][()]
     result['imu'] = []
     for i in range(len(timestamp)):
@@ -59,17 +61,19 @@ def load(h5_filename):
             'ax': ax[i],
             'ay': ay[i],
             'az': az[i],
-            'ax_raw': ax_raw[i],
-            'ay_raw': ay_raw[i],
-            'az_raw': az_raw[i],
             'hx': hx[i],
             'hy': hy[i],
             'hz': hz[i],
-            'hx_raw': hx_raw[i],
-            'hy_raw': hy_raw[i],
-            'hz_raw': hz_raw[i],
             'temp': temp[i]
         }
+        if '/sensors/imu/ax_raw' in data:
+            imu['ax_raw'] = ax_raw[i]
+            imu['ay_raw'] = ay_raw[i]
+            imu['az_raw'] = az_raw[i]
+        if '/sensors/imu/hx_raw' in data:
+            imu['hx_raw'] = hx_raw[i]
+            imu['hy_raw'] = hy_raw[i]
+            imu['hz_raw'] = hz_raw[i]
         result['imu'].append(imu)
 
     timestamp = data['/sensors/gps/timestamp'][()]
@@ -109,6 +113,7 @@ def load(h5_filename):
 
     if 'sensors/gpsraw' in data:
         timestamp = data['/sensors/gpsraw/timestamp'][()]
+        receiver_tow = data['/sensors/gpsraw/receiver_tow'][()]
         num_sats = data['/sensors/gpsraw/num_sats'][()]
         result['gpsraw'] = []
         doppler = []
@@ -121,6 +126,7 @@ def load(h5_filename):
         for i in range(len(timestamp)):
             gpsraw = {
                 'time': timestamp[i],
+                'receiver_tow': receiver_tow[i],
                 'num_sats': num_sats[i],
                 'doppler': [],
                 'pseudorange': [],
@@ -130,7 +136,7 @@ def load(h5_filename):
                 gpsraw['doppler'].append( doppler[j][i] )
                 gpsraw['pseudorange'].append( pseudorange[j][i] )
                 gpsraw['svid'].append( svid[j][i] )
-            print(gpsraw)
+            # print(gpsraw)
             result['gpsraw'].append(gpsraw)
 
     timestamp = data['/sensors/air/timestamp'][()]
@@ -178,9 +184,10 @@ def load(h5_filename):
     abx = data['/navigation/filter/ax_bias'][()]
     aby = data['/navigation/filter/ay_bias'][()]
     abz = data['/navigation/filter/az_bias'][()]
-    max_pos_cov = data['/navigation/filter/max_pos_cov'][()]
-    max_vel_cov = data['/navigation/filter/max_vel_cov'][()]
-    max_att_cov = data['/navigation/filter/max_att_cov'][()]
+    if '/navigation/filter/max_pos_cov' in data:
+        max_pos_cov = data['/navigation/filter/max_pos_cov'][()]
+        max_vel_cov = data['/navigation/filter/max_vel_cov'][()]
+        max_att_cov = data['/navigation/filter/max_att_cov'][()]
     result['filter'] = []
     for i in range(len(timestamp)):
         psi = yaw[i]*d2r
@@ -209,11 +216,12 @@ def load(h5_filename):
                 'r_bias': gbz[i],
                 'ax_bias': abx[i],
                 'ay_bias': aby[i],
-                'az_bias': abz[i],
-                'max_pos_cov': max_pos_cov[i],
-                'max_vel_cov': max_vel_cov[i],
-                'max_att_cov': max_att_cov[i]
+                'az_bias': abz[i]
             }
+            if '/navigation/filter/max_pos_cov' in data:
+                filter['max_pos_cov'] = max_pos_cov[i]
+                filter['max_vel_cov'] = max_vel_cov[i]
+                filter['max_att_cov'] = max_att_cov[i]
             result['filter'].append(filter)
 
     # load filter (post process) records if they exist (for comparison
@@ -333,7 +341,10 @@ def load(h5_filename):
     speed = data['/autopilot/airspeed_kt'][()]
     ground = data['/autopilot/altitude_ground_m'][()]
     tecs_tot = data['/autopilot/tecs_target_tot'][()]
-    current_task = data['/autopilot/current_task'][()]
+    if '/autopilot/current_task' in data:
+        current_task = data['/autopilot/current_task'][()]
+    else:
+        current_task = None
     if '/autopilot/task_attribute' in data:
         task_attrib = data['/autopilot/task_attribute'][()]
     else:
@@ -347,7 +358,11 @@ def load(h5_filename):
     for i in range(len(timestamp)):
         hdgx = math.cos(hdg[i]*d2r)
         hdgy = math.sin(hdg[i]*d2r)
-        if task_attrib is None:
+        if not current_task is None:
+            cur_task = current_task[i]
+        else:
+            cur_task = 0
+        if not task_attrib is None:
             attrib = task_attrib[i]
         else:
             attrib = 0
@@ -364,7 +379,7 @@ def load(h5_filename):
             'speed': speed[i],
             'ground': ground[i],
             'tecs_target_tot': tecs_tot[i],
-            'current_task': current_task[i],
+            'current_task': cur_task,
             'task_attrib': attrib,
             'route_size': route_size[i],
             'target_waypoint_idx': target_waypoint_idx[i],

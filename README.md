@@ -1,4 +1,4 @@
-# AuraUAS aura-flightdata
+# Rice Creek UAS rc-flightdata
 
 Python libraries to load and interpolate a variety of flight data
 formats.  These libs are primarily intended to support higher level
@@ -11,7 +11,7 @@ the time and location of the flight, even if the flight was weeks or
 months or even years ago.
 
 Data file formats supported include:
-* AuraUAS (hdf5 and csv variants)
+* rcUAS (hdf5 and csv variants)
 * PX4 sdlog2, ulog
 * Sentera, Sentera2
 * UMN Goldy 1 (matlab)
@@ -37,7 +37,7 @@ top of the flight data loader include:
 
 ```python
     #!/usr/bin/python3
-    from aurauas.flightdata import flight_loader, flight_interp
+    from rcUAS.flightdata import flight_loader, flight_interp
     data, flight_format = flight_loader.load("/flight/data/log/path")
     iter = flight_interp.IterateGroup(data)
     for i in range(iter.size()):
