@@ -5,8 +5,9 @@ import pandas as pd
 from . import ardupilot_log
 from . import aura_csv
 from . import aura_hdf5
-from . import px4_sdlog2
 from . import px4_ulog
+from . import px4_sdlog2
+from . import px4_csv
 from . import sentera
 from . import sentera2
 from . import umn1_mat
@@ -53,13 +54,16 @@ def load(path):
         print("Notice: assuming umn1 .mat format")
         flight_data = umn1_mat.load(path)
         flight_format = "umn1"
+    elif ext == ".ulg":
+        # px4 binary ulog
+        
     elif os.path.exists(ulog_path):
-        # px4_ulog
+        # px4_ulog (csv export)
         print("Detected px4 ulog (csv family of files) format.")
         print("Support needs code updates")
         quit()
-        flight_data = px4_ulog.load(path)
-        flight_format = "px4_ulog"
+        flight_data = px4_csv.load(path)
+        flight_format = "px4_csv"
     elif ext == ".csv":
         # px4 sdlog2
         print("Detected px4 ulog (single csv file) format.")
