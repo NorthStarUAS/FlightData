@@ -56,7 +56,8 @@ def load(path):
         flight_format = "umn1"
     elif ext == ".ulg":
         # px4 binary ulog
-        
+        flight_data = px4_ulog.load(path)
+        flight_format = "px4_ulog"
     elif os.path.exists(ulog_path):
         # px4_ulog (csv export)
         print("Detected px4 ulog (csv family of files) format.")

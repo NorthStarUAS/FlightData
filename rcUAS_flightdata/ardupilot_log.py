@@ -41,7 +41,7 @@ def load(csv_file):
         for row in reader:
             #print(row)
             if row[0] == select_imu:
-                imu["time"] = float(row[1]) / 1000000.0
+                imu["time"] = float(row[1]) / 1e6
                 imu["p"] = float(row[2])
                 imu["q"] = float(row[3])
                 imu["r"] = float(row[4])
@@ -63,7 +63,7 @@ def load(csv_file):
                 result["imu"].append( copy(imu) )
             if row[0] == "GPS":
                 gps = {}
-                gps["time"] = float(row[1]) / 1000000.0
+                gps["time"] = float(row[1]) / 1e6
                 gps["unix_sec"] = gps["time"]
                 gps["lat"] = float(row[7])
                 gps["lon"] = float(row[8])
@@ -83,7 +83,7 @@ def load(csv_file):
                 air["airspeed"] = float(row[2]) * mps2kt
                 air["diff_press"] = float(row[3])
             if row[0] == "BARO":
-                air["time"] = float(row[1]) / 1000000.0
+                air["time"] = float(row[1]) / 1e6
                 air["static_press"] = float(row[3])
                 air["temp"] = float(row[4])
                 air["alt_press"] = float(row[2])
@@ -100,7 +100,7 @@ def load(csv_file):
             if row[0] == "NKF2":
                 nav["az_bias"] = float(row[3])
             if row[0] == "AHR2":
-                nav["time"] = float(row[1]) / 1000000.0
+                nav["time"] = float(row[1]) / 1e6
                 nav["lat"] = float(row[6])*d2r
                 nav["lon"] = float(row[7])*d2r
                 nav["alt"] = float(row[5])
@@ -118,7 +118,7 @@ def load(csv_file):
 
             if row[0] == "AETR":
                 pilot = {
-                    "time": float(row[1]) / 1000000.0,
+                    "time": float(row[1]) / 1e6,
                     "auto_manual": 0,
                     "throttle_safety": 0,
                     "aileron": float(row[2]) / 100.0,
