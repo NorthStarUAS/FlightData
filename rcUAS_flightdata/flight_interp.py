@@ -14,7 +14,10 @@ class FlightInterpolate():
         if not len(data):
             return
         for key in data[0]:
-            if type(data[0][key]) != str:
+            print(" ", key, type(data[0][key]))
+            if type(data[0][key]) is str or type(data[0][key]) is bytes:
+                pass
+            else:
                 #print("  field:", key, type(data[0][key]))
                 columns[key] = []
         for record in data:
@@ -24,6 +27,7 @@ class FlightInterpolate():
             columns[key] = np.array(columns[key])
         self.interp = {}
         for key in columns:
+            print(key)
             self.interp[key] = interpolate.interp1d(columns['time'],
                                                     columns[key],
                                                     bounds_error=False,
@@ -56,11 +60,15 @@ class InterpolationGroup():
     def __init__(self, data):
         self.group = {}
         for key in data:
-            #print("group:", key)
-            self.group[key] = FlightInterpolate(data[key])
+            if len(data[key]) > 1:
+                print("group:", key)
+                self.group[key] = FlightInterpolate(data[key])
 
     def query(self, t, key):
-        return self.group[key].query(t)
+        if key in self.group:
+            return self.group[key].query(t)
+        else:
+            return None
 
 # emulate realtime linear processing of a data set
 class IterateGroup():

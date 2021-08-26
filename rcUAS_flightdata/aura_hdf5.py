@@ -24,7 +24,7 @@ def load(h5_filename):
     for i in range(len(timestamp)):
         event = {
             'time': timestamp[i],
-            'message': message[i]
+            'message': str(message[i])
         }
         if 'Aura3' in event['message']:
             pilot_mapping = 'Aura3'
