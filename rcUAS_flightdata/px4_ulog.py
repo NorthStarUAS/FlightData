@@ -81,6 +81,9 @@ def load(ulog_file):
                                            bounds_error=False,
                                            fill_value='extrapolate')
 
+    hx_interp = None
+    hy_interp = None
+    hz_interp = None
     d = get_section(data, "vehicle_magnetometer", 0)
     if d is not None:
         mags = []
@@ -119,11 +122,17 @@ def load(ulog_file):
                 "ax": d.data["accelerometer_m_s2[0]"][i],
                 "ay": d.data["accelerometer_m_s2[1]"][i],
                 "az": d.data["accelerometer_m_s2[2]"][i],
-                "hx": float(hx_interp(t)),
-                "hy": float(hy_interp(t)),
-                "hz": float(hz_interp(t)),
                 "temp": temp
             }
+            if hx_interp is not None:
+                imu["hx"] = float(hx_interp(t))
+                imu["hy"] = float(hy_interp(t))
+                imu["hz"] = float(hz_interp(t))
+            else:
+                imu["hx"] = d.data["magnetometer_ga[0]"][i]
+                imu["hy"] = d.data["magnetometer_ga[1]"][i]
+                imu["hz"] = d.data["magnetometer_ga[2]"][i]
+                
             result["imu"].append(imu)
 
     d = get_section(data, "vehicle_gps_position", 0)
@@ -197,6 +206,20 @@ def load(ulog_file):
                 "pitot_scale": 1
             }
             result["air"].append(air)
+    else:
+        d = get_section(data, "airspeed", 0)
+        if d is not None:
+            airspeed = []
+            for i in range(len(d.data["timestamp"])):
+                t = d.data["timestamp"][i]
+                air = {
+                    "time": t / 1e6,
+                    "airspeed": d.data["indicated_airspeed_m_s"][i] * mps2kt,
+                    "wind_dir": float(wind_deg_interp(t)),
+                    "wind_speed": float(wind_kt_interp(t)),
+                    "pitot_scale": 1
+                }
+                result["air"].append(air)
 
     d = get_section(data, "vehicle_global_position", 0)
     if d is not None:
