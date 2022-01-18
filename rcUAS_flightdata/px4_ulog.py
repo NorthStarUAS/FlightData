@@ -5,6 +5,8 @@ import math
 import numpy as np
 from scipy import interpolate
 
+from pyulog.core import ULog    # pip install pyulog
+
 d2r = math.pi / 180.0
 r2d = 180.0/ math.pi
 mps2kt = 1.94384
@@ -38,8 +40,6 @@ def get_section(data, name, id):
     return None
 
 def load(ulog_file):
-    from pyulog.core import ULog    # pip install pyulog
-    
     result = {}
     result["imu"] = []
     result["gps"] = []
@@ -58,6 +58,7 @@ def load(ulog_file):
                 "vehicle_air_data",
                 "vehicle_attitude",
                 "vehicle_attitude_setpoint",
+                "vehicle_local_position",
                 "vehicle_global_position",
                 "vehicle_gps_position",
                 "vehicle_magnetometer",
@@ -165,8 +166,10 @@ def load(ulog_file):
         asi_interp = interpolate.interp1d(airspeed[:,0], airspeed[:,1],
                                           bounds_error=False,
                                           fill_value='extrapolate')
+    else:
+        asi_interp = None
     d = get_section(data, "wind_estimate", 0)
-    if d is not None:
+    if d is not None and np.sum(d.data["windspeed_north"]) > 0.1 and np.sum(d.data["windspeed_east"]) > 0.1:
         wind = []
         for i in range(len(d.data["timestamp"])):
             wn = d.data["windspeed_north"][i]
@@ -180,29 +183,45 @@ def load(ulog_file):
             ]
             wind.append(w)
         wind = np.array(wind)
+        print("sum wind:", np.sum(wind[:,1]), np.sum(wind[:,2]))
         wind_deg_interp = interpolate.interp1d(wind[:,0], wind[:,1],
                                                bounds_error=False,
                                                fill_value='extrapolate')
         wind_kt_interp = interpolate.interp1d(wind[:,0], wind[:,2],
                                               bounds_error=False,
                                               fill_value='extrapolate')
+    else:
+        wind_deg_interp = None
+        wind_kt_interp = None
 
     d = get_section(data, "vehicle_air_data", 0)
     if d is not None:
         for i in range(len(d.data["timestamp"])):
             t = d.data["timestamp"][i]
+            if asi_interp is not None:
+                asi = float(asi_interp(t))
+            else:
+                asi = 0
+            if wind_deg_interp is not None:
+                wind_deg = float(wind_deg_interp(t))
+            else:
+                wind_deg = 0
+            if wind_kt_interp is not None:
+                wind_kt = float(wind_kt_interp(t))
+            else:
+                wind_kt = 0
             air = {
                 "time": t / 1e6,
                 "static_press": d.data["baro_pressure_pa"][i],
                 "diff_press": 0.0, 
                 "temp": d.data["baro_temp_celcius"][i],
-                "airspeed": float(asi_interp(t)),
+                "airspeed": asi,
                 "alt_press": d.data["baro_alt_meter"][i],
                 "alt_true": 0,
                 "tecs_error_total": 0,
                 "tecs_error_diff": 0,
-                "wind_dir": float(wind_deg_interp(t)),
-                "wind_speed": float(wind_kt_interp(t)),
+                "wind_dir": wind_deg,
+                "wind_speed": wind_kt,
                 "pitot_scale": 1
             }
             result["air"].append(air)
@@ -215,12 +234,15 @@ def load(ulog_file):
                 air = {
                     "time": t / 1e6,
                     "airspeed": d.data["indicated_airspeed_m_s"][i] * mps2kt,
-                    "wind_dir": float(wind_deg_interp(t)),
-                    "wind_speed": float(wind_kt_interp(t)),
                     "pitot_scale": 1
                 }
+                if wind_deg_interp is not None:
+                    air["wind_dir"] = float(wind_deg_interp(t))
+                    air["wind_speed"] = float(wind_kt_interp(t))
                 result["air"].append(air)
 
+    d = get_section(data, "vehicle_local_position", 0)
+    
     d = get_section(data, "vehicle_global_position", 0)
     if d is not None:
         poses = []
@@ -317,7 +339,15 @@ def load(ulog_file):
                 "aileron": (d.data["output[0]"][i] - 1500) / 500,
                 "elevator": (d.data["output[1]"][i] - 1500) / 500,
                 "throttle": (d.data["output[2]"][i] - 1000) / 1000,
-                "rudder": -(d.data["output[3]"][i] - 1500) / 500
+                "rudder": -(d.data["output[3]"][i] - 1500) / 500,
+                "flaps": (d.data["output[5]"][i] - 1500) / 500,
+                "output[0]": d.data["output[0]"][i],
+                "output[1]": d.data["output[1]"][i],
+                "output[2]": d.data["output[2]"][i],
+                "output[3]": d.data["output[3]"][i],
+                "output[4]": d.data["output[4]"][i],
+                "output[5]": d.data["output[5]"][i],
+                "output[6]": d.data["output[6]"][i],
             }
             result["act"].append(act)
 
