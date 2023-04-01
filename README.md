@@ -1,4 +1,4 @@
-# Rice Creek UAS rc-flightdata
+# North Star UAS flightdata
 
 Python libraries to load and interpolate a variety of flight data formats.
 These libs are primarily intended to support higher level flight post processing
