@@ -8,8 +8,6 @@ from . import aura_hdf5
 from . import px4_ulog
 from . import px4_sdlog2
 from . import px4_csv
-from . import sentera
-from . import sentera2
 from . import umn1_mat
 from . import umn3_hdf5
 
@@ -21,8 +19,7 @@ def load(path):
     aura_hdf5_path = os.path.join(path, "flight.h5")
     aura_csv_path = os.path.join(path, "imu-0.csv")
     ulog_path = path + "_sensor_combined_0.csv"
-    sentera_path = os.path.join(path, "imu.csv")
-    
+
     # determine the data log format and call the corresponding loader code
 
     if ext == ".h5":
@@ -77,15 +74,6 @@ def load(path):
         print("Detected ardupilot log format.")
         flight_data = ardupilot_log.load(path)
         flight_format = "ardupilot_log"
-    elif os.path.exists(sentera_path):
-        # sentera1 or sentera2
-        print("Detected sentera format.")
-        print("Notice: assuming original sentera camera format")
-        print("Support needs code updates")
-        quit()
-        flight_data = sentera.load(path)
-        # imu_data, gps_data, air_data, filter_data = sentera2.load(path)
-        flight_format = "sentera"
     else:
         print("Unable to determine data log format (or path not valid):", path)
 
@@ -98,7 +86,7 @@ def as_pandas(flight_data):
         result[key] = pd.DataFrame(flight_data[key])
         result[key].set_index("time", inplace=True, drop=False)
     return result
-       
+
 def save(filename, data):
     aura_csv.save_filter_result(filename, data)
 

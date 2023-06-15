@@ -14,7 +14,6 @@ Data file formats supported include:
 
 * NorthStarUAS native (hdf5 and csv variants)
 * PX4 sdlog2, ulog
-* Sentera, Sentera2
 * UMN Goldy 1 (matlab)
 * UMN Goldy 3 (hdf5)
 
