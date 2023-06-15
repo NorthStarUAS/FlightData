@@ -1,4 +1,4 @@
-# North Star UAS flightdata
+# North Star UAS flight-data
 
 Python libraries to load and interpolate a variety of flight data formats.
 These libs are primarily intended to support higher level flight post processing
@@ -6,7 +6,7 @@ scripts.
 
 Included in this package is a weather/forecast front end to forecast.io.  You
 will need to register for your own free apikey to use this module.  This allows
-scripts to dump out a weather summary at the time and location of the flight,
+scripts to dump out a weather summary a-t the time and location of the flight,
 even if the flight was weeks or months or even years ago.  [Note: unsure if this
 still works after Apple bought dark sky and discontinued some things...]
 
