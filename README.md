@@ -19,8 +19,8 @@ Data file formats supported include:
 * UMN Goldy 3 (hdf5)
 
 (With some effort) it is possible to extend this library to support flight data
-from other autopilot systems.  Some of the tools built on top of the flight data
-loader include:
+from other autopilot or data acquisition systems.  Some of the tools built on
+top of the flight data loader include:
 
 * Running the UMN/AEM/UAV lab EKF and comparing it's output to the
   onboard native EKF.
