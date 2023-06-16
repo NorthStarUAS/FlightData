@@ -31,10 +31,11 @@ top of the flight data loader include:
 
 ## Building
 
-Make sure the python build package is installed:
+Make sure the python build module and pyulog are installed:
 
 ```bash
 pip install --upgrade build
+pip install pyulog
 ```
 
 Build the transformations package
