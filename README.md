@@ -38,7 +38,7 @@ pip install --upgrade build
 pip install pyulog
 ```
 
-Build the transformations package
+Build the flight-data package
 
 ```bash
 python -m build
