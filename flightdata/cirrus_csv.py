@@ -1,7 +1,7 @@
 # load cirrus csv data format
 
 import csv
-from math import pi, sqrt
+from math import cos, pi, sin, sqrt
 
 g = 9.81
 d2r = pi / 180.0
@@ -17,7 +17,7 @@ def load(csv_file):
         "pilot": [],
         "act": [],
         "ap": [],
-        "health": [],
+        # "health": [],
     }
 
     last_gps_time = -1.0
@@ -30,7 +30,6 @@ def load(csv_file):
             # incrementing clock in seconds, it doesn't really matter what the
             # zero reference point of time is here.
             time = float(row["SystemMillis"]) / 1000.0
-
             imu = {
                 "time": time,
                 "p": -float(row["gyro_x"]) * d2r,
@@ -39,6 +38,10 @@ def load(csv_file):
                 "ax": -float(row["Accel_X_millig"]) * g / 1000.0,
                 "ay": float(row["Accel_Y_millig"]) * g / 1000.0,
                 "az": -float(row["Accel_Z_millig"]) * g / 1000.0,
+                "hx": 0.0,
+                "hy": 0.0,
+                "hz": 0.0,
+                "temp": 0.0,
             }
             result["imu"].append( imu )
 
@@ -67,60 +70,65 @@ def load(csv_file):
                 "diff_press": diff_mbar,
                 "airspeed": sqrt((2/1.225)*diff_mbar*100)*1.94384,
                 "alt_press": (pow((1013.25/static_mbar), 1/5.257) - 1) * (15+273.15) / 0.0065,
+                "alpha": float(row["Alpha_deg"]),
+                "beta": float(row["Beta_deg"]),
             }
             result["air"].append( air )
 
             # load filter records if they exist (for comparison purposes)
-            # lat = float(row["latitude_deg"])
-            # lon = float(row["longitude_deg"])
-            # psi_deg = float(row["heading_deg"])
-            # psi = psi_deg*d2r
-            # if psi > math.pi:
-            #     psi -= 2*math.pi
-            # if psi < -math.pi:
-            #     psi += 2*math.pi
-            # psix = math.cos(psi)
-            # psiy = math.sin(psi)
-            # if abs(lat) > 0.0001 and abs(lon) > 0.0001:
-            #     nav = {
-            #         "time": float(row["timestamp"]),
-            #         "lat": lat*d2r,
-            #         "lon": lon*d2r,
-            #         "alt": float(row["altitude_m"]),
-            #         "vn": float(row["vn_ms"]),
-            #         "ve": float(row["ve_ms"]),
-            #         "vd": float(row["vd_ms"]),
-            #         "phi": float(row["roll_deg"])*d2r,
-            #         "the": float(row["pitch_deg"])*d2r,
-            #         "psi": psi,
-            #         "psix": psix,
-            #         "psiy": psiy,
-            #         "p_bias": float(row["p_bias"]),
-            #         "q_bias": float(row["q_bias"]),
-            #         "r_bias": float(row["r_bias"]),
-            #         "ax_bias": float(row["ax_bias"]),
-            #         "ay_bias": float(row["ay_bias"]),
-            #         "az_bias": float(row["az_bias"])
-            #     }
-            #     result["filter"].append(nav)
+            lat = float(row["HSDB_Lat_deg"])
+            lon = float(row["HSDB_Lon_deg"])
+            psi_deg = float(row["HSDB_mhdg_deg"])
+            psi = psi_deg*d2r
+            if psi > pi:
+                psi -= 2*pi
+            if psi < -pi:
+                psi += 2*pi
+            psix = cos(psi)
+            psiy = sin(psi)
+            if abs(lat) > 0.0001 and abs(lon) > 0.0001:
+                nav = {
+                    "time": time,
+                    "lat": lat*d2r,
+                    "lon": lon*d2r,
+                    "alt": float(row["HSDB_MSL_m"]),
+                    "vn": float(row["HSDB_vn_mps"]),
+                    "ve": float(row["HSDB_ve_mps"]),
+                    "vd": float(row["HSDB_vd_mps"]),
+                    "phi": float(row["HSDB_roll_deg"])*d2r,
+                    "the": float(row["HSDB_pitch_deg"])*d2r,
+                    "psi": psi,
+                    "psix": psix,
+                    "psiy": psiy,
+                    # "p_bias": float(row["p_bias"]),
+                    # "q_bias": float(row["q_bias"]),
+                    # "r_bias": float(row["r_bias"]),
+                    # "ax_bias": float(row["ax_bias"]),
+                    # "ay_bias": float(row["ay_bias"]),
+                    # "az_bias": float(row["az_bias"])
+                }
+                result["filter"].append(nav)
 
             pilot = {
                 "time": time,
-                #"throttle": float(row["channel[2]"]),
-                "aileron": float(row["AileronL"]),
-                "elevator": float(row["Elevator"]),
-                "rudder": float(row["Rudder"]),
-                #"flaps": float(row["Flaps"]),
+                "throttle": float(row["Throttle"]),
+                "aileron": float(row["AileronL_deg"]) / 12.5,
+                "elevator": float(row["Elevator_deg"]) / 25.0,  # technically +15,-25 but this makes it symmetric about zero
+                "rudder": float(row["Rudder_deg"]) / 20.0,
+                "flaps": float(row["Flaps_norm"]),
+                "auto_manual": 0,
+                "aux1": 0,
             }
             result["pilot"].append(pilot)
 
             act = {
                 "time": time,
-                #"throttle": float(row["channel[2]"]),
-                "aileron": float(row["AileronL"]),
-                "elevator": float(row["Elevator"]),
-                "rudder": float(row["Rudder"]),
-                #"flaps": float(row["Flaps"]),
+                "throttle": float(row["Throttle"]),
+                "aileron": float(row["AileronL_deg"]) / 12.5,
+                "elevator": float(row["Elevator_deg"]) / 25.0,
+                "rudder": float(row["Rudder_deg"]) / 20.0,
+                "flaps": float(row["Flaps_norm"]),
+                "aux1": 0,
             }
             result["act"].append(act)
 
