@@ -63,12 +63,12 @@ def load(csv_file):
                 last_gps_time = time
 
             static_mbar = float(row["AbsPressure"]) * psf2mbar
-            diff_mbar = float(row["DelPressure"]) * psf2mbar
+            diff_pa = abs(float(row["HSDB_diff_press_pa"]))
             air = {
                 "time": time,
                 "static_press": static_mbar,
-                "diff_press": diff_mbar,
-                "airspeed": sqrt((2/1.225)*diff_mbar*100)*1.94384,
+                "diff_press": diff_pa,
+                "airspeed": sqrt((2/1.225)*diff_pa*100)*1.94384,
                 "alt_press": (pow((1013.25/static_mbar), 1/5.257) - 1) * (15+273.15) / 0.0065,
                 "alpha": float(row["Alpha_deg"]),
                 "beta": float(row["Beta_deg"]),
@@ -113,8 +113,8 @@ def load(csv_file):
                 "time": time,
                 "throttle": float(row["Throttle"]),
                 "aileron": float(row["AileronL_deg"]) / 12.5,
-                "elevator": float(row["Elevator_deg"]) / 25.0,  # technically +15,-25 but this makes it symmetric about zero
-                "rudder": float(row["Rudder_deg"]) / 20.0,
+                "elevator": -float(row["Elevator_deg"]) / 25.0,  # technically +15,-25 but this makes it symmetric about zero
+                "rudder": -float(row["Rudder_deg"]) / 20.0,
                 "flaps": float(row["Flaps_norm"]),
                 "auto_manual": 0,
                 "aux1": 0,
@@ -125,8 +125,8 @@ def load(csv_file):
                 "time": time,
                 "throttle": float(row["Throttle"]),
                 "aileron": float(row["AileronL_deg"]) / 12.5,
-                "elevator": float(row["Elevator_deg"]) / 25.0,
-                "rudder": float(row["Rudder_deg"]) / 20.0,
+                "elevator": -float(row["Elevator_deg"]) / 25.0,
+                "rudder": -float(row["Rudder_deg"]) / 20.0,
                 "flaps": float(row["Flaps_norm"]),
                 "aux1": 0,
             }
