@@ -3,8 +3,8 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "flightdata_northstaruas"
-version = "1.4"
+name = "flightdata"
+version = "1.5"
 authors = [
   { name="Curtis L. Olson", email="curtolson@flightgear.org" },
 ]

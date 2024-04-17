@@ -5,7 +5,7 @@ import pandas as pd
 from . import ardupilot_log
 from . import aura_csv
 from . import aura_hdf5
-from . import cirrus_csv
+from . import cirrus_pkl
 from . import px4_ulog
 from . import px4_sdlog2
 from . import px4_csv
@@ -75,11 +75,11 @@ def load(path):
         print("Detected ardupilot log format.")
         flight_data = ardupilot_log.load(path)
         flight_format = "ardupilot_log"
-    elif ext == ".csv":
-        # cirrus in-house das log format + a few hsdb derived fields
-        print("Detected cirrus csv format.")
-        flight_data = cirrus_csv.load(path)
-        flight_format = "cirrus_csv"
+    elif ext == ".pkl":
+        # cirrus in-house pkl log format
+        print("Detected cirrus pkl format.")
+        flight_data = cirrus_pkl.load(path)
+        flight_format = "cirrus_pkl"
     else:
         print("Unable to determine data log format (or path not valid):", path)
 

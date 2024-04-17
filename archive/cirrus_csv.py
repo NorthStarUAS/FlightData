@@ -68,7 +68,7 @@ def load(csv_file):
                 "time": time,
                 "static_press": static_mbar,
                 "diff_press": diff_pa,
-                "airspeed": sqrt((2/1.225)*diff_pa*100)*1.94384,
+                "airspeed": sqrt((2/1.225)*diff_pa)*1.94384,
                 "alt_press": (pow((1013.25/static_mbar), 1/5.257) - 1) * (15+273.15) / 0.0065,
                 "alpha": float(row["Alpha_deg"]),
                 "beta": float(row["Beta_deg"]),
