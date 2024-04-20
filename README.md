@@ -1,4 +1,4 @@
-# North Star UAS flight-data
+# North Star UAS FlightData
 
 Python libraries to load and interpolate a variety of flight data formats.
 These libs are primarily intended to support higher level flight post processing
@@ -38,7 +38,7 @@ pip install --upgrade build
 pip install pyulog
 ```
 
-Build the flight-data package
+Build the flightdata package
 
 ```bash
 python -m build
