@@ -6,6 +6,8 @@ import pickle
 
 d2r = pi / 180.0
 r2d = 180.0 / pi
+kt2mps = 0.5144444444444444444
+mps2kt = 1.0 / kt2mps
 
 def load(pkl_file):
     result = {
@@ -61,7 +63,7 @@ def load(pkl_file):
 
         static_mbar = data["pStatic_Pa"] / 100.0
         diff_pa = data["pDiff_Pa"]
-        vcas_mps = data["vCas_mps"]
+        vcas_kt = data["vCas_mps"] * mps2kt
         alt_m = data["altBaro_m"]
         alpha_deg = data["alpha_rad"] * r2d
         beta_deg = data["beta_rad"] * r2d
@@ -70,7 +72,7 @@ def load(pkl_file):
                 "time": time_s[i],
                 "static_press": static_mbar[i],
                 "diff_press": diff_pa[i],
-                "airspeed": vcas_mps[i],
+                "airspeed": vcas_kt[i],
                 "alt_press": alt_m[i],
                 "alpha": alpha_deg[i],
                 "beta": beta_deg[i],
