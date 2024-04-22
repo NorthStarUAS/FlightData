@@ -111,7 +111,7 @@ def load(pkl_file):
                 "time": time_s[i],
                 "throttle": power[i],
                 "aileron": ail[i],
-                "elevator": -ele[i],  # technically +15,-25 but this makes it symmetric about zero
+                "elevator": ele[i],  # technically +15,-25 but this makes it symmetric about zero
                 "rudder": -rud[i],
                 "flaps": flaps[i],
                 "auto_manual": 0,
@@ -124,7 +124,7 @@ def load(pkl_file):
                 "time": time_s[i],
                 "throttle": power[i],
                 "aileron": ail[i],
-                "elevator": -ele[i],  # technically +15,-25 but this makes it symmetric about zero
+                "elevator": ele[i],  # technically +15,-25 but this makes it symmetric about zero
                 "rudder": -rud[i],
                 "flaps": flaps[i],
                 "auto_manual": 0,
