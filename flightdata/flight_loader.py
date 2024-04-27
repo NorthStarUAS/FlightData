@@ -2,15 +2,15 @@ import h5py
 import os
 import pandas as pd
 
-from . import ardupilot_log
-from . import aura_csv
-from . import aura_hdf5
-from . import cirrus_pkl
-from . import px4_ulog
-from . import px4_sdlog2
-from . import px4_csv
-from . import umn1_mat
-from . import umn3_hdf5
+from .formats import ardupilot_log
+from .formats import aura_csv
+from .formats import aura_hdf5
+from .formats import cirrus_pkl
+from .formats import px4_ulog
+from .formats import px4_sdlog2
+from .formats import px4_csv
+from .formats import umn1_mat
+from .formats import umn3_hdf5
 
 def load(path):
     flight_data = {}
