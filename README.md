@@ -1,8 +1,10 @@
-# North Star UAS FlightData
+# Flight Data
 
 Python libraries to load and interpolate a variety of flight data formats.
 These libs are primarily intended to support higher level flight post processing
 scripts.
+
+## Overview
 
 Included in this package is a weather/forecast front end to forecast.io.  You
 will need to register for your own free apikey to use this module.  This allows
