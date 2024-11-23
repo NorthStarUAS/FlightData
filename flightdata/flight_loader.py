@@ -5,6 +5,7 @@ import pandas as pd
 from .formats import ardupilot_log
 from .formats import aura_csv
 from .formats import aura_hdf5
+from .formats import nst_hdf5
 from .formats import cirrus_pkl
 from .formats import px4_ulog
 from .formats import px4_sdlog2
@@ -32,6 +33,12 @@ def load(path):
                 print("Detected AuraUAS hdf5 format.")
                 flight_data = aura_hdf5.load(path)
                 flight_format = "aura_hdf5"
+            elif md.attrs.get("format", "") == "NorthStarUAS":
+                print("Detected NorthStarUAS hdf5 format.")
+                flight_data = nst_hdf5.load(path)
+                flight_format = "nst_hdf5"
+            else:
+                print("not yet support hdf5 file")
         else:
             print("Detected UMN3 (hdf5) format.")
             flight_data = umn3_hdf5.load(path)
