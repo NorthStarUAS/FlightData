@@ -137,46 +137,46 @@ def load(h5_filename):
         result["airdata"].append( air )
 
     print("  loading nav...")
-    timestamp = data["/navigation/filter/timestamp"][()]
-    lat = data["/navigation/filter/latitude_deg"][()]*d2r
-    lon = data["/navigation/filter/longitude_deg"][()]*d2r
-    alt = data["/navigation/filter/altitude_m"][()]
-    vn = data["/navigation/filter/vn_ms"][()]
-    ve = data["/navigation/filter/ve_ms"][()]
-    vd = data["/navigation/filter/vd_ms"][()]
-    roll = data["/navigation/filter/roll_deg"][()]
-    pitch = data["/navigation/filter/pitch_deg"][()]
-    yaw = data["/navigation/filter/heading_deg"][()]
-    gbx = data["/navigation/filter/p_bias"][()]
-    gby = data["/navigation/filter/q_bias"][()]
-    gbz = data["/navigation/filter/r_bias"][()]
-    abx = data["/navigation/filter/ax_bias"][()]
-    aby = data["/navigation/filter/ay_bias"][()]
-    abz = data["/navigation/filter/az_bias"][()]
-    if "/navigation/filter/max_pos_cov" in data:
-        max_pos_cov = data["/navigation/filter/max_pos_cov"][()]
-        max_vel_cov = data["/navigation/filter/max_vel_cov"][()]
-        max_att_cov = data["/navigation/filter/max_att_cov"][()]
+    millis = data["/filters/nav/millis"][()]
+    lat_deg = data["/filters/nav/latitude_raw"][()]/10000000.0
+    lon_deg = data["/filters/nav/longitude_raw"][()]/10000000.0
+    alt_m = data["/filters/nav/altitude_m"][()]
+    vn_mps = data["/filters/nav/vn_mps"][()]
+    ve_mps = data["/filters/nav/ve_mps"][()]
+    vd_mps = data["/filters/nav/vd_mps"][()]
+    roll_deg = data["/filters/nav/roll_deg"][()]
+    pitch_deg = data["/filters/nav/pitch_deg"][()]
+    yaw_deg = data["/filters/nav/heading_deg"][()]
+    gbx = data["/filters/nav/p_bias"][()]
+    gby = data["/filters/nav/q_bias"][()]
+    gbz = data["/filters/nav/r_bias"][()]
+    abx = data["/filters/nav/ax_bias"][()]
+    aby = data["/filters/nav/ay_bias"][()]
+    abz = data["/filters/nav/az_bias"][()]
+    if "/filters/nav/max_pos_cov" in data:
+        max_pos_cov = data["/filters/nav/max_pos_cov"][()]
+        max_vel_cov = data["/filters/nav/max_vel_cov"][()]
+        max_att_cov = data["/filters/nav/max_att_cov"][()]
     result["filter"] = []
     for i in range(len(timestamp)):
-        psi = yaw[i]*d2r
+        psi = yaw_deg[i]*d2r
         if psi > math.pi:
             psi -= 2*math.pi
         if psi < -math.pi:
             psi += 2*math.pi
         psix = math.cos(psi)
         psiy = math.sin(psi)
-        if abs(lat[i]) > 0.0001 and abs(lon[i]) > 0.0001:
+        if abs(lat_deg[i]) > 0.0001 and abs(lon_deg[i]) > 0.0001:
             filter = {
-                "time": timestamp[i],
-                "lat": lat[i],
-                "lon": lon[i],
-                "alt": alt[i],
-                "vn": vn[i],
-                "ve": ve[i],
-                "vd": vd[i],
-                "phi": roll[i]*d2r,
-                "the": pitch[i]*d2r,
+                "timestamp": millis[i] / 1000.0,
+                "lat_deg": lat_deg[i],
+                "lon_deg": lon_deg[i],
+                "alt_m": alt_m[i],
+                "vn_mps": vn_mps[i],
+                "ve_mps": ve_mps[i],
+                "vd_mps": vd_mps[i],
+                "phi": roll_deg[i]*d2r,
+                "the": pitch_deg[i]*d2r,
                 "psi": psi,
                 "psix": psix,
                 "psiy": psiy,
@@ -187,7 +187,7 @@ def load(h5_filename):
                 "ay_bias": aby[i],
                 "az_bias": abz[i]
             }
-            if "/navigation/filter/max_pos_cov" in data:
+            if "/filters/nav/max_pos_cov" in data:
                 filter["max_pos_cov"] = max_pos_cov[i]
                 filter["max_vel_cov"] = max_vel_cov[i]
                 filter["max_att_cov"] = max_att_cov[i]
