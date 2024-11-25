@@ -1,4 +1,4 @@
-# build linear interpolaters for the 'standard' flight data fields.
+# build linear interpolaters for the "standard" flight data fields.
 
 import math
 import numpy as np
@@ -28,14 +28,14 @@ class FlightInterpolate():
         self.interp = {}
         for key in columns:
             print(key)
-            self.interp[key] = interpolate.interp1d(columns['time'],
+            self.interp[key] = interpolate.interp1d(columns["timestamp"],
                                                     columns[key],
                                                     bounds_error=False,
                                                     fill_value=0.0)
 
     def query(self, t):
         result = {}
-        result['time'] = t
+        result["timestamp"] = t
         for key in self.interp:
             result[key] = self.interp[key](t).item()
         return result
@@ -51,7 +51,7 @@ class pdFlightInterpolate():
 
     def query(self, t):
         result = {}
-        result['time'] = t
+        result["timestamp"] = t
         for key in self.interp:
             result[key] = self.interp[key](t).item()
         return result
@@ -79,36 +79,36 @@ class IterateGroup():
             self.counter[key] = 0
 
     def size(self):
-        if 'imu' in self.data:
-            return len(self.data['imu'])
+        if "imu" in self.data:
+            return len(self.data["imu"])
         else:
             return 0
-    
+
     def next(self):
         result = {}
         # next imu record
-        i = self.counter['imu']
-        if i < len(self.data['imu']):
-            t = self.data['imu'][i]['time']
+        i = self.counter["imu"]
+        if i < len(self.data["imu"]):
+            t = self.data["imu"][i]["timestamp"]
             #print("t = ", t)
-            result['imu'] = self.data['imu'][i]
-            self.counter['imu'] += 1
-            
+            result["imu"] = self.data["imu"][i]
+            self.counter["imu"] += 1
+
             # look for new records of other types
             for key in self.data:
-                if key != 'imu':
-                    #print(" ", key)
+                if key != "imu":
+                    # print(" ", key)
                     i = self.counter[key]
                     while i < len(self.data[key]):
                         d = self.data[key][i]
-                        if d['time'] <= t:
-                            #print("  ", d['time'])
+                        if d["timestamp"] <= t:
+                            #print("  ", d["timestamp"])
                             result[key] = d
                             self.counter[key] += 1
                             i = self.counter[key]
-                            if d['time'] == t:
+                            if d["timestamp"] == t:
                                 break
                         else:
                             break
         return result
-            
+
