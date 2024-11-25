@@ -19,8 +19,8 @@ def load(h5_filename):
     result = {}
 
     print("  loading events...")
-    millis = data["/status/events/millis"][()]
-    message = data["/status/events/message"][()]
+    millis = data["/events/millis"][()]
+    message = data["/events/message"][()]
     result["event"] = []
     for i in range(len(millis)):
         event = {
@@ -90,9 +90,9 @@ def load(h5_filename):
         gps = {
             "timestamp": millis[i] / 1000.0,
             "unix_sec": unix_usec[i] / 1000000.0,
-            "lat_deg": lat_raw[i] / 10000000.0,
-            "lon_deg": lon_raw[i] / 10000000.0,
-            "alt_m": alt[i],
+            "latitude_deg": lat_raw[i] / 10000000.0,
+            "longitude_deg": lon_raw[i] / 10000000.0,
+            "altitude_m": alt[i],
             "vn_mps": vn[i],
             "ve_mps": ve[i],
             "vd_mps": vd[i],
@@ -113,8 +113,8 @@ def load(h5_filename):
     flight_timer = data["/sensors/airdata/flight_timer_millis"][()]
     is_airborne = data["/sensors/airdata/is_airborne"][()]
     pitot_scale = data["/sensors/airdata/pitot_scale_factor"][()]
-    wind_dir = data["/sensors/airdata/wind_dir_deg"][()]
-    wind_speed = data["/sensors/airdata/wind_speed_mps"][()]
+    wind_deg = data["/sensors/airdata/wind_dir_deg"][()]
+    wind_mps = data["/sensors/airdata/wind_speed_mps"][()]
     error_count = data["/sensors/airdata/error_count"][()]
     result["airdata"] = []
     for i in range(len(millis)):
@@ -130,8 +130,8 @@ def load(h5_filename):
             "flight_timer_sec": flight_timer[i] / 1000.0,
             "is_airborne": is_airborne[i],
             "pitot_scale": pitot_scale[i],
-            "wind_dir": wind_dir[i],
-            "wind_speed": wind_speed[i],
+            "wind_deg": wind_deg[i],
+            "wind_mps": wind_mps[i],
             "error_count": error_count[i]
         }
         result["airdata"].append( air )
@@ -146,19 +146,9 @@ def load(h5_filename):
     vd_mps = data["/filters/nav/vd_mps"][()]
     roll_deg = data["/filters/nav/roll_deg"][()]
     pitch_deg = data["/filters/nav/pitch_deg"][()]
-    yaw_deg = data["/filters/nav/heading_deg"][()]
-    gbx = data["/filters/nav/p_bias"][()]
-    gby = data["/filters/nav/q_bias"][()]
-    gbz = data["/filters/nav/r_bias"][()]
-    abx = data["/filters/nav/ax_bias"][()]
-    aby = data["/filters/nav/ay_bias"][()]
-    abz = data["/filters/nav/az_bias"][()]
-    if "/filters/nav/max_pos_cov" in data:
-        max_pos_cov = data["/filters/nav/max_pos_cov"][()]
-        max_vel_cov = data["/filters/nav/max_vel_cov"][()]
-        max_att_cov = data["/filters/nav/max_att_cov"][()]
-    result["filter"] = []
-    for i in range(len(timestamp)):
+    yaw_deg = data["/filters/nav/yaw_deg"][()]
+    result["nav"] = []
+    for i in range(len(millis)):
         psi = yaw_deg[i]*d2r
         if psi > math.pi:
             psi -= 2*math.pi
@@ -167,11 +157,11 @@ def load(h5_filename):
         psix = math.cos(psi)
         psiy = math.sin(psi)
         if abs(lat_deg[i]) > 0.0001 and abs(lon_deg[i]) > 0.0001:
-            filter = {
+            nav = {
                 "timestamp": millis[i] / 1000.0,
-                "lat_deg": lat_deg[i],
-                "lon_deg": lon_deg[i],
-                "alt_m": alt_m[i],
+                "latitude_deg": lat_deg[i],
+                "longitude_deg": lon_deg[i],
+                "altitude_m": alt_m[i],
                 "vn_mps": vn_mps[i],
                 "ve_mps": ve_mps[i],
                 "vd_mps": vd_mps[i],
@@ -180,186 +170,162 @@ def load(h5_filename):
                 "psi": psi,
                 "psix": psix,
                 "psiy": psiy,
+            }
+            result["nav"].append(nav)
+
+    print("  loading nav metrics...")
+    millis = data["/filters/nav_metrics/metrics_millis"][()]
+    gbx = data["/filters/nav_metrics/p_bias"][()]
+    gby = data["/filters/nav_metrics/q_bias"][()]
+    gbz = data["/filters/nav_metrics/r_bias"][()]
+    abx = data["/filters/nav_metrics/ax_bias"][()]
+    aby = data["/filters/nav_metrics/ay_bias"][()]
+    abz = data["/filters/nav_metrics/az_bias"][()]
+    Pa0 = data["/filters/nav_metrics/Pa0"][()]
+    Pa1 = data["/filters/nav_metrics/Pa1"][()]
+    Pa2 = data["/filters/nav_metrics/Pa2"][()]
+    Pp0 = data["/filters/nav_metrics/Pp0"][()]
+    Pp1 = data["/filters/nav_metrics/Pp1"][()]
+    Pp2 = data["/filters/nav_metrics/Pp2"][()]
+    Pv0 = data["/filters/nav_metrics/Pv0"][()]
+    Pv1 = data["/filters/nav_metrics/Pv1"][()]
+    Pv2 = data["/filters/nav_metrics/Pv2"][()]
+    result["nav_metrics"] = []
+    for i in range(len(millis)):
+        if abs(lat_deg[i]) > 0.0001 and abs(lon_deg[i]) > 0.0001:
+            nav_metrics = {
+                "timestamp": millis[i] / 1000.0,
                 "p_bias": gbx[i],
                 "q_bias": gby[i],
                 "r_bias": gbz[i],
                 "ax_bias": abx[i],
                 "ay_bias": aby[i],
-                "az_bias": abz[i]
+                "az_bias": abz[i],
+                "Pa0": Pa0[i],
+                "Pa1": Pa1[i],
+                "Pa2": Pa2[i],
+                "Pp0": Pp0[i],
+                "Pp1": Pp1[i],
+                "Pp2": Pp2[i],
+                "Pv0": Pv0[i],
+                "Pv1": Pv1[i],
+                "Pv2": Pv2[i],
             }
-            if "/filters/nav/max_pos_cov" in data:
-                filter["max_pos_cov"] = max_pos_cov[i]
-                filter["max_vel_cov"] = max_vel_cov[i]
-                filter["max_att_cov"] = max_att_cov[i]
-            result["filter"].append(filter)
+            result["nav_metrics"].append(nav_metrics)
 
-    # load filter (post process) records if they exist (for comparison
-    # purposes)
-    # if os.path.exists(filter_post):
-    #     result["filter_post"] = []
-    #     with open(filter_post, "r") as ffilter:
-    #         reader = csv.DictReader(ffilter)
-    #         for row in reader:
-    #             lat = float(row["latitude_deg"])
-    #             lon = float(row["longitude_deg"])
-    #             psi_deg = float(row["heading_deg"])
-    #             psi = psi_deg*d2r
-    #             if psi > math.pi:
-    #                 psi -= 2*math.pi
-    #             if psi < -math.pi:
-    #                 psi += 2*math.pi
-    #             psix = math.cos(psi)
-    #             psiy = math.sin(psi)
-    #             if abs(lat) > 0.0001 and abs(lon) > 0.0001:
-    #                 nav = {
-    #                     "time": float(row["timestamp"]),
-    #                     "lat": lat*d2r,
-    #                     "lon": lon*d2r,
-    #                     "alt": float(row["altitude_m"]),
-    #                     "vn": float(row["vn_ms"]),
-    #                     "ve": float(row["ve_ms"]),
-    #                     "vd": float(row["vd_ms"]),
-    #                     "phi": float(row["roll_deg"])*d2r,
-    #                     "the": float(row["pitch_deg"])*d2r,
-    #                     "psi": psi,
-    #                     "psix": psix,
-    #                     "psiy": psiy,
-    #                     "p_bias": float(row["p_bias"]),
-    #                     "q_bias": float(row["q_bias"]),
-    #                     "r_bias": float(row["r_bias"]),
-    #                     "ax_bias": float(row["ax_bias"]),
-    #                     "ay_bias": float(row["ay_bias"]),
-    #                     "az_bias": float(row["az_bias"])
-    #                 }
-    #                 result["filter_post"].append(nav)
-
-    timestamp = data["/sensors/pilot/timestamp"][()]
-    ch0 = data["/sensors/pilot/channel[0]"][()]
-    ch1 = data["/sensors/pilot/channel[1]"][()]
-    ch2 = data["/sensors/pilot/channel[2]"][()]
-    ch3 = data["/sensors/pilot/channel[3]"][()]
-    ch4 = data["/sensors/pilot/channel[4]"][()]
-    ch5 = data["/sensors/pilot/channel[5]"][()]
-    ch6 = data["/sensors/pilot/channel[6]"][()]
-    ch7 = data["/sensors/pilot/channel[7]"][()]
-    result["pilot"] = []
-    for i in range(len(timestamp)):
-        pilot = {
-            "time": timestamp[i],
-            "auto_manual": ch0[i],
-            "throttle_safety": ch1[i],
-            "throttle": ch2[i],
-            "aileron": ch3[i],
-            "elevator": ch4[i],
-            "rudder": ch5[i],
-            "flaps": ch6[i],
-            "aux1": ch7[i],
-            "gear": 0
-        }
-        result["pilot"].append(pilot)
-
-    timestamp = data["/actuators/act/timestamp"][()]
-    ail = data["/actuators/act/aileron_norm"][()]
-    elev = data["/actuators/act/elevator_norm"][()]
-    thr = data["/actuators/act/throttle_norm"][()]
-    rud = data["/actuators/act/rudder_norm"][()]
-    gear = data["/actuators/act/channel5_norm"][()]
-    flaps = data["/actuators/act/flaps_norm"][()]
-    aux1 = data["/actuators/act/channel7_norm"][()]
-    auto_manual = data["/actuators/act/channel8_norm"][()]
-    result["act"] = []
-    for i in range(len(timestamp)):
-        act = {
-            "time": timestamp[i],
-            "aileron": ail[i],
-            "elevator": elev[i],
-            "throttle": thr[i],
-            "rudder": rud[i],
-            "gear": gear[i],
+    print("  loading inceptors...")
+    millis = data["/sensors/inceptors/millis"][()]
+    master_switch = data["/sensors/inceptors/master_switch"][()]
+    throttle_enable = data["/sensors/inceptors/throttle_enable"][()]
+    roll = data["/sensors/inceptors/roll"][()]
+    pitch = data["/sensors/inceptors/pitch"][()]
+    yaw = data["/sensors/inceptors/yaw"][()]
+    power = data["/sensors/inceptors/power"][()]
+    flaps = data["/sensors/inceptors/flaps"][()]
+    gear = data["/sensors/inceptors/gear"][()]
+    aux1 = data["/sensors/inceptors/aux1"][()]
+    aux2 = data["/sensors/inceptors/aux2"][()]
+    result["inceptors"] = []
+    for i in range(len(millis)):
+        inceptors = {
+            "timestamp": millis[i] / 1000.0,
+            "master_switch": master_switch[i],
+            "throttle_enable": throttle_enable[i],
+            "roll": roll[i],
+            "pitch": pitch[i],
+            "yaw": yaw[i],
+            "power": power[i],
             "flaps": flaps[i],
+            "gear": gear[i],
             "aux1": aux1[i],
-            "auto_manual": auto_manual[i]
+            "aux2": aux2[i]
         }
-        result["act"].append(act)
+        result["inceptors"].append(inceptors)
 
+    print("  loading effectors...")
+    millis = data["/fcs/effectors/millis"][()]
+    channel = data["/fcs/effectors/channel"][()]
+    result["effectors"] = []
+    for i in range(len(millis)):
+        effectors = {
+            "timestamp": millis[i] / 1000.0,
+            "throttle": channel[i][0],
+            "aileron": channel[i][1],
+            "elevator": channel[i][2],
+            "rudder": channel[i][3],
+            "flaps": channel[i][4],
+            "gear": channel[i][5],
+            "aux1": channel[i][6],
+            "aux2": channel[i][7]
+        }
+        result["effectors"].append(effectors)
 
-    timestamp = data["/autopilot/timestamp"][()]
-    master = data["/autopilot/master_switch"][()]
-    pass_through = data["/autopilot/pilot_pass_through"][()]
-    hdg = data["/autopilot/groundtrack_deg"][()]
-    roll = data["/autopilot/roll_deg"][()]
-    alt = data["/autopilot/altitude_msl_ft"][()]
-    pitch = data["/autopilot/pitch_deg"][()]
-    speed = data["/autopilot/airspeed_kt"][()]
-    ground = data["/autopilot/altitude_ground_m"][()]
-    tecs_tot = data["/autopilot/tecs_target_tot"][()]
-    if "/autopilot/current_task" in data:
-        current_task = data["/autopilot/current_task"][()]
-    else:
-        current_task = None
-    if "/autopilot/task_attribute" in data:
-        task_attrib = data["/autopilot/task_attribute"][()]
-    else:
-        task_attrib = None
-    route_size = data["/autopilot/route_size"][()]
-    target_waypoint_idx = data["/autopilot/target_waypoint_idx"][()]
-    wpt_index = data["/autopilot/wpt_index"][()]
-    wpt_latitude_deg = data["/autopilot/wpt_latitude_deg"][()]
-    wpt_longitude_deg = data["/autopilot/wpt_longitude_deg"][()]
-    result["ap"] = []
-    for i in range(len(timestamp)):
+    print("  loading fcs refs...")
+    millis = data["/fcs/refs/millis"][()]
+    hdg = data["/fcs/refs/groundtrack_deg"][()]
+    roll = data["/fcs/refs/roll_deg"][()]
+    pitch = data["/fcs/refs/pitch_deg"][()]
+    alt = data["/fcs/refs/altitude_agl_ft"][()]
+    speed = data["/fcs/refs/airspeed_kt"][()]
+    # tecs_tot = data["/mission/tecs_target_tot"][()]
+    # tecs_diff = data["/mission/tecs_target_diff"][()]
+    result["refs"] = []
+    for i in range(len(millis)):
         hdgx = math.cos(hdg[i]*d2r)
         hdgy = math.sin(hdg[i]*d2r)
-        if not current_task is None:
-            cur_task = current_task[i]
-        else:
-            cur_task = 0
-        if not task_attrib is None:
-            attrib = task_attrib[i]
-        else:
-            attrib = 0
-        ap = {
-            "time": timestamp[i],
-            "master_switch": master[i],
-            "pilot_pass_through": pass_through[i],
-            "hdg": hdg[i],
-            "hdgx": hdgx,
-            "hdgy": hdgy,
-            "roll": roll[i],
-            "alt": alt[i],
-            "pitch": pitch[i],
-            "speed": speed[i],
-            "ground": ground[i],
-            "tecs_target_tot": tecs_tot[i],
-            "current_task": cur_task,
-            "task_attrib": attrib,
+        refs = {
+            "timestamp": millis[i] / 1000.0,
+            "groundtrack_deg": hdg[i],
+            "groundtrack_x": hdgx,
+            "groundtrack_y": hdgy,
+            "roll_deg": roll[i],
+            "pitch_deg": pitch[i],
+            "altitude_agl_ft": alt[i],
+            "airspeed_kt": speed[i],
+        }
+        result["refs"].append(refs)
+
+    print("  loading mission...")
+    millis = data["/mission/millis"][()]
+    task_name = data["/mission/task_name"][()]
+    task_attrib = data["/mission/task_attribute"][()]
+    route_size = data["/mission/route_size"][()]
+    target_wpt_idx = data["/mission/target_waypoint_idx"][()]
+    wpt_index = data["/mission/wp_index"][()]
+    wpt_latitude_deg = data["/mission/wp_latitude_raw"][()] / 10000000.0
+    wpt_longitude_deg = data["/mission/wp_longitude_raw"][()] / 10000000.0
+    result["mission"] = []
+    for i in range(len(millis)):
+        mission = {
+            "timestamp": millis[i] / 1000.0,
+            "task_name": task_name,
+            "task_attrib": task_attrib,
             "route_size": route_size[i],
-            "target_waypoint_idx": target_waypoint_idx[i],
+            "target_wpt_idx": target_wpt_idx[i],
             "wpt_index": wpt_index[i],
             "wpt_latitude_deg": wpt_latitude_deg[i],
             "wpt_longitude_deg": wpt_longitude_deg[i]
         }
-        result["ap"].append(ap)
+        result["mission"].append(mission)
 
-    timestamp = data["/sensors/health/timestamp"][()]
-    load_avg = data["/sensors/health/system_load_avg"][()]
-    avionics_vcc = data["/sensors/health/avionics_vcc"][()]
-    main_vcc = data["/sensors/health/main_vcc"][()]
-    cell_vcc = data["/sensors/health/cell_vcc"][()]
-    main_amps = data["/sensors/health/main_amps"][()]
-    total_mah = data["/sensors/health/total_mah"][()]
-    result["health"] = []
-    for i in range(len(timestamp)):
-        health = {
-            "time": timestamp[i],
-            "load_avg": load_avg[i],
+    print("  loading power...")
+    millis = data["/sensors/power/millis"][()]
+    avionics_vcc = data["/sensors/power/avionics_vcc"][()]
+    main_vcc = data["/sensors/power/main_vcc"][()]
+    cell_vcc = data["/sensors/power/cell_vcc"][()]
+    main_amps = data["/sensors/power/main_amps"][()]
+    total_mah = data["/sensors/power/total_mah"][()]
+    result["power"] = []
+    for i in range(len(millis)):
+        power = {
+            "timestamp": millis[i] / 1000.0,
             "avionics_vcc": avionics_vcc[i],
             "main_vcc": main_vcc[i],
             "cell_vcc": cell_vcc[i],
             "main_amps": main_amps[i],
             "total_mah": total_mah[i]
         }
-        result["health"].append(health)
+        result["power"].append(power)
 
     return result
 
