@@ -105,16 +105,8 @@ def load(h5_filename):
     millis = data["/sensors/airdata/millis"][()]
     temp = data["/sensors/airdata/air_temp_C"][()]
     airspeed = data["/sensors/airdata/airspeed_mps"][()]
-    alt_agl = data["/sensors/airdata/altitude_agl_m"][()]
-    alt_ground = data["/sensors/airdata/altitude_ground_m"][()]
-    alt_true = data["/sensors/airdata/altitude_true_m"][()]
     baro_press = data["/sensors/airdata/baro_press_pa"][()]
     diff_press = data["/sensors/airdata/diff_press_pa"][()]
-    flight_timer = data["/sensors/airdata/flight_timer_millis"][()]
-    is_airborne = data["/sensors/airdata/is_airborne"][()]
-    pitot_scale = data["/sensors/airdata/pitot_scale_factor"][()]
-    wind_deg = data["/sensors/airdata/wind_dir_deg"][()]
-    wind_mps = data["/sensors/airdata/wind_speed_mps"][()]
     error_count = data["/sensors/airdata/error_count"][()]
     result["airdata"] = []
     for i in range(len(millis)):
@@ -122,19 +114,36 @@ def load(h5_filename):
             "timestamp": millis[i] / 1000.0,
             "temp_C": temp[i],
             "airspeed_mps": airspeed[i],
+            "baro_press_pa": baro_press[i],
+            "diff_press_pa": diff_press[i],
+            "error_count": error_count[i]
+        }
+        result["airdata"].append( air )
+
+    print("  loading environment...")
+    millis = data["/filters/env/millis"][()]
+    alt_agl = data["/filters/env/altitude_agl_m"][()]
+    alt_ground = data["/filters/env/altitude_ground_m"][()]
+    alt_true = data["/filters/env/altitude_true_m"][()]
+    flight_timer = data["/filters/env/flight_timer_millis"][()]
+    is_airborne = data["/filters/env/is_airborne"][()]
+    pitot_scale = data["/filters/env/pitot_scale_factor"][()]
+    wind_deg = data["/filters/env/wind_deg"][()]
+    wind_mps = data["/filters/env/wind_mps"][()]
+    result["env"] = []
+    for i in range(len(millis)):
+        env = {
+            "timestamp": millis[i] / 1000.0,
             "altitude_agl_m": alt_agl[i],
             "altitude_ground_m": alt_ground[i],
             "alt_true": alt_true[i],
-            "baro_press_pa": baro_press[i],
-            "diff_press_pa": diff_press[i],
             "flight_timer_sec": flight_timer[i] / 1000.0,
             "is_airborne": is_airborne[i],
             "pitot_scale": pitot_scale[i],
             "wind_deg": wind_deg[i],
             "wind_mps": wind_mps[i],
-            "error_count": error_count[i]
         }
-        result["airdata"].append( air )
+        result["env"].append( env )
 
     print("  loading nav...")
     millis = data["/filters/nav/millis"][()]
@@ -216,7 +225,7 @@ def load(h5_filename):
     print("  loading inceptors...")
     millis = data["/sensors/inceptors/millis"][()]
     master_switch = data["/sensors/inceptors/master_switch"][()]
-    throttle_enable = data["/sensors/inceptors/throttle_enable"][()]
+    motor_enable = data["/sensors/inceptors/motor_enable"][()]
     roll = data["/sensors/inceptors/roll"][()]
     pitch = data["/sensors/inceptors/pitch"][()]
     yaw = data["/sensors/inceptors/yaw"][()]
@@ -230,7 +239,7 @@ def load(h5_filename):
         inceptors = {
             "timestamp": millis[i] / 1000.0,
             "master_switch": master_switch[i],
-            "throttle_enable": throttle_enable[i],
+            "motor_enable": motor_enable[i],
             "roll": roll[i],
             "pitch": pitch[i],
             "yaw": yaw[i],
@@ -290,10 +299,10 @@ def load(h5_filename):
     task_name = data["/mission/task_name"][()]
     task_attrib = data["/mission/task_attribute"][()]
     route_size = data["/mission/route_size"][()]
-    target_wpt_idx = data["/mission/target_waypoint_idx"][()]
-    wpt_index = data["/mission/wp_index"][()]
-    wpt_latitude_deg = data["/mission/wp_latitude_raw"][()] / 10000000.0
-    wpt_longitude_deg = data["/mission/wp_longitude_raw"][()] / 10000000.0
+    target_wpt_idx = data["/mission/target_wpt_idx"][()]
+    wpt_index = data["/mission/wpt_index"][()]
+    wpt_latitude_deg = data["/mission/wpt_latitude_raw"][()] / 10000000.0
+    wpt_longitude_deg = data["/mission/wpt_longitude_raw"][()] / 10000000.0
     result["mission"] = []
     for i in range(len(millis)):
         mission = {
@@ -313,8 +322,7 @@ def load(h5_filename):
     avionics_vcc = data["/sensors/power/avionics_vcc"][()]
     main_vcc = data["/sensors/power/main_vcc"][()]
     cell_vcc = data["/sensors/power/cell_vcc"][()]
-    main_amps = data["/sensors/power/main_amps"][()]
-    total_mah = data["/sensors/power/total_mah"][()]
+    pwm_vcc = data["/sensors/power/pwm_vcc"][()]
     result["power"] = []
     for i in range(len(millis)):
         power = {
@@ -322,8 +330,7 @@ def load(h5_filename):
             "avionics_vcc": avionics_vcc[i],
             "main_vcc": main_vcc[i],
             "cell_vcc": cell_vcc[i],
-            "main_amps": main_amps[i],
-            "total_mah": total_mah[i]
+            "pwm_vcc": pwm_vcc[i],
         }
         result["power"].append(power)
 
