@@ -201,26 +201,25 @@ def load(h5_filename):
     Pv2 = data["/filters/nav_metrics/Pv2"][()]
     result["nav_metrics"] = []
     for i in range(len(millis)):
-        if abs(lat_deg[i]) > 0.0001 and abs(lon_deg[i]) > 0.0001:
-            nav_metrics = {
-                "timestamp": millis[i] / 1000.0,
-                "p_bias": gbx[i],
-                "q_bias": gby[i],
-                "r_bias": gbz[i],
-                "ax_bias": abx[i],
-                "ay_bias": aby[i],
-                "az_bias": abz[i],
-                "Pa0": Pa0[i],
-                "Pa1": Pa1[i],
-                "Pa2": Pa2[i],
-                "Pp0": Pp0[i],
-                "Pp1": Pp1[i],
-                "Pp2": Pp2[i],
-                "Pv0": Pv0[i],
-                "Pv1": Pv1[i],
-                "Pv2": Pv2[i],
-            }
-            result["nav_metrics"].append(nav_metrics)
+        nav_metrics = {
+            "timestamp": millis[i] / 1000.0,
+            "p_bias": gbx[i],
+            "q_bias": gby[i],
+            "r_bias": gbz[i],
+            "ax_bias": abx[i],
+            "ay_bias": aby[i],
+            "az_bias": abz[i],
+            "Pa0": Pa0[i],
+            "Pa1": Pa1[i],
+            "Pa2": Pa2[i],
+            "Pp0": Pp0[i],
+            "Pp1": Pp1[i],
+            "Pp2": Pp2[i],
+            "Pv0": Pv0[i],
+            "Pv1": Pv1[i],
+            "Pv2": Pv2[i],
+        }
+        result["nav_metrics"].append(nav_metrics)
 
     print("  loading inceptors...")
     millis = data["/sensors/inceptors/millis"][()]
@@ -250,6 +249,27 @@ def load(h5_filename):
             "aux2": aux2[i]
         }
         result["inceptors"].append(inceptors)
+
+    print("  loading fcs outputs...")
+    millis = data["/fcs/outputs/millis"][()]
+    roll = data["/fcs/outputs/roll"][()]
+    pitch = data["/fcs/outputs/pitch"][()]
+    yaw = data["/fcs/outputs/yaw"][()]
+    power = data["/fcs/outputs/power"][()]
+    flaps = data["/fcs/outputs/flaps"][()]
+    gear = data["/fcs/outputs/gear"][()]
+    result["fcs_outputs"] = []
+    for i in range(len(millis)):
+        outputs = {
+            "timestamp": millis[i] / 1000.0,
+            "roll": roll[i],
+            "pitch": pitch[i],
+            "yaw": yaw[i],
+            "power": power[i],
+            "flaps": flaps[i],
+            "gear": gear[i],
+        }
+        result["fcs_outputs"].append(outputs)
 
     print("  loading effectors...")
     millis = data["/fcs/effectors/millis"][()]
