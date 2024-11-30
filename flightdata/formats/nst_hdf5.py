@@ -110,7 +110,7 @@ def load(h5_filename):
             psi += 2*math.pi
         record["groundtrack_x"] = math.cos(psi)
         record["groundtrack_y"] = math.sin(psi)
-    result["fcs_outputs"] = subdata
+    result["fcs_refs"] = subdata
 
     subdata = subload(data, "", "mission")
     for i in range(len(subdata)):
