@@ -13,11 +13,11 @@ def load(pkl_file):
     result = {
         "imu": [],
         "gps": [],
-        "air": [],
-        "filter": [],
-        "pilot": [],
-        "act": [],
-        "ap": [],
+        "airdata": [],
+        "nav": [],
+        "inceptors": [],
+        "effectors": [],
+        "fcs": [],
         # "health": [],
     }
 
@@ -31,6 +31,7 @@ def load(pkl_file):
         accel = data["aB_B_mps2"]
         for i in range(records):
             imu = {
+                "timestamp": time_s[i],
                 "millis": time_s[i] * 1000.0,
                 "p_rps": gyro[0][i],
                 "q_rps": gyro[1][i],
@@ -49,10 +50,11 @@ def load(pkl_file):
         vel = data["vGps_L_mps"]
         for i in range(records):
             gps = {
+                "timestamp": time_s[i],
                 "millis": time_s[i] * 1000.0,
                 "unix_usec": time_s[i] * 1000000.0,
                 "latitude_raw": lla[0][i] * 10000000,
-                "longitude_ra": lla[1][i] * 10000000,
+                "longitude_raw": lla[1][i] * 10000000,
                 "altitude_m": lla[2][i],  # MSL
                 "vn_mps": vel[0][i],
                 "ve_mps": vel[1][i],
@@ -68,7 +70,8 @@ def load(pkl_file):
         alpha_deg = data["alpha_rad"] * r2d
         beta_deg = data["beta_rad"] * r2d
         for i in range(records):
-            air = {
+            airdata = {
+                "timestamp": time_s[i],
                 "millis": time_s[i] * 1000.0,
                 "bar_press_pa": static_mbar[i] * 100.0,
                 "diff_press_pa": diff_pa[i],
@@ -77,16 +80,17 @@ def load(pkl_file):
                 "alpha_deg": alpha_deg[i],
                 "beta_deg": beta_deg[i],
             }
-            result["air"].append( air )
+            result["airdata"].append( airdata )
 
         euler = data["sB_rad"]
         psix = np.cos(euler[2])
         psiy = np.sin(euler[2])
         for i in range(records):
             nav = {
+                "timestamp": time_s[i],
                 "millis": time_s[i] * 1000.0,
                 "latitude_raw": lla[0][i] * 10000000,
-                "longitude_ra": lla[1][i] * 10000000,
+                "longitude_raw": lla[1][i] * 10000000,
                 "altitude_m": lla[2][i],  # MSL
                 "vn_mps": vel[0][i],
                 "ve_mps": vel[1][i],
@@ -97,7 +101,7 @@ def load(pkl_file):
                 "psix": psix[i],
                 "psiy": psiy[i],
             }
-            result["filter"].append(nav)
+            result["nav"].append(nav)
 
         power = data["engPwr_nd"]
         ail = data["dAilL_rad"] * r2d / 12.5
@@ -106,6 +110,7 @@ def load(pkl_file):
         flaps = data["dFlap_nd"]
         for i in range(records):
             inceptors = {
+                "timestamp": time_s[i],
                 "millis": time_s[i] * 1000.0,
                 "power": power[i],
                 "roll": ail[i],
@@ -121,6 +126,7 @@ def load(pkl_file):
 
         for i in range(records):
             effectors = {
+                "timestamp": time_s[i],
                 "millis": time_s[i] * 1000,
                 "channel": [ power[i], ail[i], ele[i], -rud[i], flaps[i], 0, 0 ]
             }
