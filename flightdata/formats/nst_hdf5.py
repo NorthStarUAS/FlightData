@@ -1,8 +1,6 @@
 import csv
 import h5py
-import os
 import math
-import re
 
 d2r = math.pi / 180.0
 
