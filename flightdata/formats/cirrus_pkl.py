@@ -31,17 +31,17 @@ def load(pkl_file):
         accel = data["aB_B_mps2"]
         for i in range(records):
             imu = {
-                "time": time_s[i],
-                "p": gyro[0][i],
-                "q": gyro[1][i],
-                "r": gyro[2][i],
-                "ax": accel[0][i],
-                "ay": accel[1][i],
-                "az": accel[2][i],
+                "millis": time_s[i] * 1000.0,
+                "p_rps": gyro[0][i],
+                "q_rps": gyro[1][i],
+                "r_rps": gyro[2][i],
+                "ax_mps2": accel[0][i],
+                "ay_mps2": accel[1][i],
+                "az_mps2": accel[2][i],
                 "hx": 0.0,
                 "hy": 0.0,
                 "hz": 0.0,
-                "temp": 0.0,
+                "temp_C": 0.0,
             }
             result["imu"].append( imu )
 
@@ -49,15 +49,15 @@ def load(pkl_file):
         vel = data["vGps_L_mps"]
         for i in range(records):
             gps = {
-                "time": time_s[i],
-                "unix_sec": time_s[i],
-                "lat": lla[0][i],
-                "lon": lla[1][i],
-                "alt": lla[2][i],  # MSL
-                "vn": vel[0][i],
-                "ve": vel[1][i],
-                "vd": vel[2][i],
-                "sats": 8
+                "millis": time_s[i] * 1000.0,
+                "unix_usec": time_s[i] * 1000000.0,
+                "latitude_raw": lla[0][i] * 10000000,
+                "longitude_ra": lla[1][i] * 10000000,
+                "altitude_m": lla[2][i],  # MSL
+                "vn_mps": vel[0][i],
+                "ve_mps": vel[1][i],
+                "vd_mps": vel[2][i],
+                "num_sats": 8
             }
             result["gps"].append(gps)
 
@@ -69,33 +69,31 @@ def load(pkl_file):
         beta_deg = data["beta_rad"] * r2d
         for i in range(records):
             air = {
-                "time": time_s[i],
-                "static_press": static_mbar[i],
-                "diff_press": diff_pa[i],
-                "airspeed": vcas_kt[i],
-                "alt_press": alt_m[i],
-                "alpha": alpha_deg[i],
-                "beta": beta_deg[i],
+                "millis": time_s[i] * 1000.0,
+                "bar_press_pa": static_mbar[i] * 100.0,
+                "diff_press_pa": diff_pa[i],
+                "airspeed_mps": vcas_kt[i] * kt2mps,
+                "altitude_m": alt_m[i],
+                "alpha_deg": alpha_deg[i],
+                "beta_deg": beta_deg[i],
             }
             result["air"].append( air )
 
-        lat_rad = lla[0] * d2r
-        lon_rad = lla[1] * d2r
         euler = data["sB_rad"]
         psix = np.cos(euler[2])
         psiy = np.sin(euler[2])
         for i in range(records):
             nav = {
-                "time": time_s[i],
-                "lat": lat_rad[i],
-                "lon": lon_rad[i],
-                "alt": lla[2][i],
-                "vn": vel[0][i],
-                "ve": vel[1][i],
-                "vd": vel[2][i],
-                "phi": euler[0][i],
-                "the": euler[1][i],
-                "psi": euler[2][i],
+                "millis": time_s[i] * 1000.0,
+                "latitude_raw": lla[0][i] * 10000000,
+                "longitude_ra": lla[1][i] * 10000000,
+                "altitude_m": lla[2][i],  # MSL
+                "vn_mps": vel[0][i],
+                "ve_mps": vel[1][i],
+                "vd_mps": vel[2][i],
+                "roll_deg": euler[0][i] * r2d,
+                "pitch_deg": euler[1][i] * r2d,
+                "yaw_deg": euler[2][i] * r2d,
                 "psix": psix[i],
                 "psiy": psiy[i],
             }
@@ -107,30 +105,26 @@ def load(pkl_file):
         rud = data["dRud_rad"] * r2d / 20
         flaps = data["dFlap_nd"]
         for i in range(records):
-            pilot = {
-                "time": time_s[i],
-                "throttle": power[i],
-                "aileron": ail[i],
-                "elevator": ele[i],  # technically +15,-25 but this makes it symmetric about zero
-                "rudder": -rud[i],
+            inceptors = {
+                "millis": time_s[i] * 1000.0,
+                "power": power[i],
+                "roll": ail[i],
+                "pitch": ele[i],  # technically +15,-25 but this makes it symmetric about zero
+                "yaw": -rud[i],
                 "flaps": flaps[i],
-                "auto_manual": 0,
+                "master_switch": 0,
+                "motor_enable": 1,
                 "aux1": 0,
+                "aux2": 0,
             }
-            result["pilot"].append(pilot)
+            result["inceptors"].append(inceptors)
 
         for i in range(records):
-            act = {
-                "time": time_s[i],
-                "throttle": power[i],
-                "aileron": ail[i],
-                "elevator": ele[i],  # technically +15,-25 but this makes it symmetric about zero
-                "rudder": -rud[i],
-                "flaps": flaps[i],
-                "auto_manual": 0,
-                "aux1": 0,
+            effectors = {
+                "millis": time_s[i] * 1000,
+                "channel": [ power[i], ail[i], ele[i], -rud[i], flaps[i], 0, 0 ]
             }
-            result["act"].append(act)
+            result["effectors"].append(effectors)
 
             # hdg = float(row["groundtrack_deg"])
             # hdgx = math.cos(hdg*d2r)
