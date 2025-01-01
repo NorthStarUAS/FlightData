@@ -1,6 +1,6 @@
 # load umn .mat file data format
 
-# MAT_FILENAME = 'thor_flight75_WaypointTracker_150squareWaypointNew_2012_10_10.mat'
+# MAT_FILENAME = "thor_flight75_WaypointTracker_150squareWaypointNew_2012_10_10.mat"\
 
 FLAG_UNBIASED_IMU = False             # Choose if accel/gyro should be bias-free.
 
@@ -22,14 +22,14 @@ def load(mat_filename):
     # Load Flight Data: ## IMPORTANT to have the .mat file in the
     # flight_data and flight_info structures for this function ##
     data = sio.loadmat(filepath, struct_as_record=False, squeeze_me=True)
-    print('Loaded Data Summary')
-    print('* File: %s' % filepath.split(os.path.sep)[-1])
+    print("Loaded Data Summary")
+    print("* File: %s" % filepath.split(os.path.sep)[-1])
     try:
-        flight_data, flight_info = data['flight_data'], data['flight_info']
-        print('* Date: %s' % flight_info.date)
-        print('* Aircraft: %s' % flight_info.aircraft)
+        flight_data, flight_info = data["flight_data"], data["flight_info"]
+        print("* Date: %s" % flight_info.date)
+        print("* Aircraft: %s" % flight_info.aircraft)
     except KeyError:
-        print('KeyError')
+        print("KeyError")
         # Convert from Python dictionary to struct-like before
         flight_data = dict2struct()
         for k in data:
@@ -44,7 +44,7 @@ def load(mat_filename):
 
     # Fill in time data
     t = flight_data.time
-    print('t:', t)
+    print("t:", t)
 
     # Magnetometer data - not used hence don't trust
     hm  = np.vstack((flight_data.hx, -flight_data.hy, -flight_data.hz)).T
@@ -58,26 +58,26 @@ def load(mat_filename):
     )
 
     # Populate IMU Data
-    imu = np.vstack((t, flight_data.p, flight_data.q, flight_data.r, 
+    imu = np.vstack((t, flight_data.p, flight_data.q, flight_data.r,
                      flight_data.ax, flight_data.ay, flight_data.az,
                      hm[:,0], hm[:,1], hm[:,2])).T
 
     # Note that accelerometer and gyro measurements logged by UAV
-    # after 11/17/2011 flight (seemingly, see 
+    # after 11/17/2011 flight (seemingly, see
     # http://trac.umnaem.webfactional.com/wiki/FlightReports/2011_11_17)
     # have the nav-estimated bias removed before datalogging. So to work with raw
     # imu-data, we add back the on-board estimated biases.
     if not FLAG_UNBIASED_IMU:
         try:
-            imu[:, 1:4] += np.vstack((flight_data.p_bias, 
-                                      flight_data.q_bias, 
+            imu[:, 1:4] += np.vstack((flight_data.p_bias,
+                                      flight_data.q_bias,
                                       flight_data.r_bias)).T
 
             imu[:, 4:7] += np.vstack((flight_data.ax_bias,
                                       flight_data.ay_bias,
                                       flight_data.az_bias)).T
         except AttributeError:
-            print('Note: On board estimated bias not found.')
+            print("Note: On board estimated bias not found.")
 
     # Air Data
     ias = flight_data.ias # indicated airspeed (m/s)
@@ -107,7 +107,7 @@ def load(mat_filename):
     # filter allowing for apples to apples comparisons.
     kstart = (abs(flight_data.navlat) > 0.0).tolist().index(True)
     k = kstart
-    print('Initialized at Time: %.2f s (k=%i)' % (t[k], k))
+    print("Initialized at Time: %.2f s (k=%i)" % (t[k], k))
 
     # Set previous value of GPS altitude to 0.0. This will be used to
     # trigger GPS newData flag which is commonly used in our
@@ -120,105 +120,105 @@ def load(mat_filename):
 
     # create data structures for ekf processing
     result = {}
-    result['imu'] = []
-    result['gps'] = []
-    result['air'] = []
-    result['filter'] = []
-    
+    result["imu"] = []
+    result["gps"] = []
+    result["airdata"] = []
+    result["nav"] = []
+
     k = kstart
     while k < len(t):
         p, q, r = imu[k, 1:4]
         ax, ay, az = imu[k, 4:7]
         hx, hy, hz = imu[k, 7:10]
-        
+
         s = [hx, hy, hz, 1.0]
         #hf = np.dot(mag_affine, s)
         hf = s
 
         imu_pt = {
-            'time': float(t[k]),
-            'p': float(p),
-            'q': float(q),
-            'r': float(r),
-            'ax': float(ax),
-            'ay': float(ay),
-            'az': float(az),
-            #'hx': hx,
-            #'hy': hy,
-            #'hz': hz,
-            'hx': float(hf[0]),
-            'hy': float(hf[1]),
-            'hz': float(hf[2]),
-            'temp': 15.0
+            "timestamp": float(t[k]),
+            "p": float(p),
+            "q": float(q),
+            "r": float(r),
+            "ax": float(ax),
+            "ay": float(ay),
+            "az": float(az),
+            #"hx": hx,
+            #"hy": hy,
+            #"hz": hz,
+            "hx": float(hf[0]),
+            "hy": float(hf[1]),
+            "hz": float(hf[2]),
+            "temp": 15.0
         }
-        result['imu'].append(imu_pt)
+        result["imu"].append(imu_pt)
 
         if abs(alt[k] - last_gps_alt) > 0.0001:
             last_gps_alt = alt[k]
             gps_pt = {
-                'time': float(t[k]),
-                #'status': int(status),
-                'unix_sec': float(t[k]),
-                'lat': float(lat[k]),
-                'lon': float(lon[k]),
-                'alt': float(alt[k]),
-                'vn': float(vn[k]),
-                've': float(ve[k]),
-                'vd': float(vd[k]),
-                'sats': 8     # force a reasonable value (not logged)
+                "timestamp": float(t[k]),
+                #"status": int(status),
+                "unix_sec": float(t[k]),
+                "lat": float(lat[k]),
+                "lon": float(lon[k]),
+                "alt": float(alt[k]),
+                "vn": float(vn[k]),
+                "ve": float(ve[k]),
+                "vd": float(vd[k]),
+                "sats": 8     # force a reasonable value (not logged)
             }
-            result['gps'].append(gps_pt)
+            result["gps"].append(gps_pt)
 
         air_pt = {
-            'time': float(t[k]),
-            'airspeed': float(flight_data.ias[k]*mps2kt),
-            'altitude': float(flight_data.h[k]),
-            'alt_true': float(flight_data.navalt[k])
+            "timestamp": float(t[k]),
+            "airspeed": float(flight_data.ias[k]*mps2kt),
+            "altitude": float(flight_data.h[k]),
+            "alt_true": float(flight_data.navalt[k])
         }
-        result['air'].append(air_pt)
-        
+        result["airdata"].append(air_pt)
+
         nav = {
-            'time': float(t[k]),
-            'lat': float(flight_data.navlat[k]),
-            'lon': float(flight_data.navlon[k]),
-            'alt': float(flight_data.navalt[k]),
-            'vn': float(flight_data.navvn[k]),
-            've': float(flight_data.navve[k]),
-            'vd': float(flight_data.navvd[k]),
-            'phi': float(flight_data.phi[k]),
-            'the': float(flight_data.theta[k]),
-            'psi': float(flight_data.psi[k]),
-            'p_bias': float(flight_data.p_bias[k]),
-            'q_bias': float(flight_data.q_bias[k]),
-            'r_bias': float(flight_data.r_bias[k]),
-            'ax_bias': float(flight_data.ax_bias[k]),
-            'ay_bias': float(flight_data.ay_bias[k]),
-            'az_bias': float(flight_data.az_bias[k])
+            "timestamp": float(t[k]),
+            "lat": float(flight_data.navlat[k]),
+            "lon": float(flight_data.navlon[k]),
+            "alt": float(flight_data.navalt[k]),
+            "vn": float(flight_data.navvn[k]),
+            "ve": float(flight_data.navve[k]),
+            "vd": float(flight_data.navvd[k]),
+            "phi": float(flight_data.phi[k]),
+            "the": float(flight_data.theta[k]),
+            "psi": float(flight_data.psi[k]),
+            "p_bias": float(flight_data.p_bias[k]),
+            "q_bias": float(flight_data.q_bias[k]),
+            "r_bias": float(flight_data.r_bias[k]),
+            "ax_bias": float(flight_data.ax_bias[k]),
+            "ay_bias": float(flight_data.ay_bias[k]),
+            "az_bias": float(flight_data.az_bias[k])
         }
-        result['filter'].append(nav)
+        result["nav"].append(nav)
 
         k += 1
 
     dir = os.path.dirname(mat_filename)
-    print('dir:', dir)
-    
-    filename = os.path.join(dir, 'imu-0.txt')
-    f = open(filename, 'w')
-    for imupt in result['imu']:
-        line = [ '%.5f' % imupt['time'], '%.4f' % imupt['p'], '%.4f' % imupt['q'], '%.4f' % imupt['r'], '%.4f' % imupt['ax'], '%.4f' % imupt['ay'], '%.4f' % imupt['az'], '%.4f' % imupt['hx'], '%.4f' % imupt['hy'], '%.4f' % imupt['hz'], '%.4f' % imupt['temp'], '0' ]
-        f.write(','.join(line) + '\n')
+    print("dir:", dir)
 
-    filename = os.path.join(dir, 'gps-0.txt')
-    f = open(filename, 'w')
-    for gpspt in result['gps']:
-        line = [ '%.5f' % gpspt['time'], '%.10f' % gpspt['lat'], '%.10f' % gpspt['lon'], '%.4f' % gpspt['alt'], '%.4f' % gpspt['vn'], '%.4f' % gpspt['ve'], '%.4f' % gpspt['vd'], '%.4f' % gpspt['time'], '8', '0' ]
-        f.write(','.join(line) + '\n')
+    filename = os.path.join(dir, "imu-0.txt")
+    f = open(filename, "w")
+    for imupt in result["imu"]:
+        line = [ "%.5f" % imupt["timestamp"], "%.4f" % imupt["p"], "%.4f" % imupt["q"], "%.4f" % imupt["r"], "%.4f" % imupt["ax"], "%.4f" % imupt["ay"], "%.4f" % imupt["az"], "%.4f" % imupt["hx"], "%.4f" % imupt["hy"], "%.4f" % imupt["hz"], "%.4f" % imupt["temp"], "0" ]
+        f.write(",".join(line) + "\n")
 
-    filename = os.path.join(dir, 'filter-0.txt')
-    f = open(filename, 'w')
+    filename = os.path.join(dir, "gps-0.txt")
+    f = open(filename, "w")
+    for gpspt in result["gps"]:
+        line = [ "%.5f" % gpspt["timestamp"], "%.10f" % gpspt["lat"], "%.10f" % gpspt["lon"], "%.4f" % gpspt["alt"], "%.4f" % gpspt["vn"], "%.4f" % gpspt["ve"], "%.4f" % gpspt["vd"], "%.4f" % gpspt["timestamp"], "8", "0" ]
+        f.write(",".join(line) + "\n")
+
+    filename = os.path.join(dir, "nav-0.txt")
+    f = open(filename, "w")
     r2d = 180.0 / math.pi
-    for filtpt in result['filter']:
-        line = [ '%.5f' % filtpt['time'], '%.10f' % filtpt['lat'], '%.10f' % filtpt['lon'], '%.4f' % filtpt['alt'], '%.4f' % filtpt['vn'], '%.4f' % filtpt['ve'], '%.4f' % filtpt['vd'], '%.4f' % (filtpt['phi']*r2d), '%.4f' % (filtpt['the']*r2d), '%.4f' % (filtpt['psi']*r2d), '0' ]
-        f.write(','.join(line) + '\n')
+    for filtpt in result["nav"]:
+        line = [ "%.5f" % filtpt["timestamp"], "%.10f" % filtpt["lat"], "%.10f" % filtpt["lon"], "%.4f" % filtpt["alt"], "%.4f" % filtpt["vn"], "%.4f" % filtpt["ve"], "%.4f" % filtpt["vd"], "%.4f" % (filtpt["phi"]*r2d), "%.4f" % (filtpt["the"]*r2d), "%.4f" % (filtpt["psi"]*r2d), "0" ]
+        f.write(",".join(line) + "\n")
 
     return result
