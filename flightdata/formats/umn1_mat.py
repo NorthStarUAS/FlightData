@@ -137,19 +137,19 @@ def load(mat_filename):
 
         imu_pt = {
             "timestamp": float(t[k]),
-            "p": float(p),
-            "q": float(q),
-            "r": float(r),
-            "ax": float(ax),
-            "ay": float(ay),
-            "az": float(az),
+            "p_rps": float(p),
+            "q_rps": float(q),
+            "r_rps": float(r),
+            "ax_mps2": float(ax),
+            "ay_mps2": float(ay),
+            "az_mps2": float(az),
             #"hx": hx,
             #"hy": hy,
             #"hz": hz,
             "hx": float(hf[0]),
             "hy": float(hf[1]),
             "hz": float(hf[2]),
-            "temp": 15.0
+            "temp_C": 15.0
         }
         result["imu"].append(imu_pt)
 
@@ -159,12 +159,12 @@ def load(mat_filename):
                 "timestamp": float(t[k]),
                 #"status": int(status),
                 "unix_sec": float(t[k]),
-                "lat": float(lat[k]),
-                "lon": float(lon[k]),
-                "alt": float(alt[k]),
-                "vn": float(vn[k]),
-                "ve": float(ve[k]),
-                "vd": float(vd[k]),
+                "lat_deg": float(lat[k]),
+                "lon_deg": float(lon[k]),
+                "alt_m": float(alt[k]),
+                "vn_mps": float(vn[k]),
+                "ve_mps": float(ve[k]),
+                "vd_mps": float(vd[k]),
                 "sats": 8     # force a reasonable value (not logged)
             }
             result["gps"].append(gps_pt)
@@ -179,15 +179,15 @@ def load(mat_filename):
 
         nav = {
             "timestamp": float(t[k]),
-            "lat": float(flight_data.navlat[k]),
-            "lon": float(flight_data.navlon[k]),
-            "alt": float(flight_data.navalt[k]),
-            "vn": float(flight_data.navvn[k]),
-            "ve": float(flight_data.navve[k]),
-            "vd": float(flight_data.navvd[k]),
-            "phi": float(flight_data.phi[k]),
-            "the": float(flight_data.theta[k]),
-            "psi": float(flight_data.psi[k]),
+            "lat_rad": float(flight_data.navlat[k]),
+            "lon_rad": float(flight_data.navlon[k]),
+            "alt_m": float(flight_data.navalt[k]),
+            "vn_mps": float(flight_data.navvn[k]),
+            "ve_mps": float(flight_data.navve[k]),
+            "vd_mps": float(flight_data.navvd[k]),
+            "phi_rad": float(flight_data.phi[k]),
+            "the_rad": float(flight_data.theta[k]),
+            "psi_rad": float(flight_data.psi[k]),
             "p_bias": float(flight_data.p_bias[k]),
             "q_bias": float(flight_data.q_bias[k]),
             "r_bias": float(flight_data.r_bias[k]),
@@ -205,20 +205,20 @@ def load(mat_filename):
     filename = os.path.join(dir, "imu-0.txt")
     f = open(filename, "w")
     for imupt in result["imu"]:
-        line = [ "%.5f" % imupt["timestamp"], "%.4f" % imupt["p"], "%.4f" % imupt["q"], "%.4f" % imupt["r"], "%.4f" % imupt["ax"], "%.4f" % imupt["ay"], "%.4f" % imupt["az"], "%.4f" % imupt["hx"], "%.4f" % imupt["hy"], "%.4f" % imupt["hz"], "%.4f" % imupt["temp"], "0" ]
+        line = [ "%.5f" % imupt["timestamp"], "%.4f" % imupt["p_rps"], "%.4f" % imupt["q_rps"], "%.4f" % imupt["r_rps"], "%.4f" % imupt["ax_mps2"], "%.4f" % imupt["ay_mps2"], "%.4f" % imupt["az_mps2"], "%.4f" % imupt["hx"], "%.4f" % imupt["hy"], "%.4f" % imupt["hz"], "%.4f" % imupt["temp_C"], "0" ]
         f.write(",".join(line) + "\n")
 
     filename = os.path.join(dir, "gps-0.txt")
     f = open(filename, "w")
     for gpspt in result["gps"]:
-        line = [ "%.5f" % gpspt["timestamp"], "%.10f" % gpspt["lat"], "%.10f" % gpspt["lon"], "%.4f" % gpspt["alt"], "%.4f" % gpspt["vn"], "%.4f" % gpspt["ve"], "%.4f" % gpspt["vd"], "%.4f" % gpspt["timestamp"], "8", "0" ]
+        line = [ "%.5f" % gpspt["timestamp"], "%.10f" % gpspt["lat_deg"], "%.10f" % gpspt["lon_deg"], "%.4f" % gpspt["alt_m"], "%.4f" % gpspt["vn_mps"], "%.4f" % gpspt["ve_mps"], "%.4f" % gpspt["vd_mps"], "%.4f" % gpspt["timestamp"], "8", "0" ]
         f.write(",".join(line) + "\n")
 
     filename = os.path.join(dir, "nav-0.txt")
     f = open(filename, "w")
     r2d = 180.0 / math.pi
     for filtpt in result["nav"]:
-        line = [ "%.5f" % filtpt["timestamp"], "%.10f" % filtpt["lat"], "%.10f" % filtpt["lon"], "%.4f" % filtpt["alt"], "%.4f" % filtpt["vn"], "%.4f" % filtpt["ve"], "%.4f" % filtpt["vd"], "%.4f" % (filtpt["phi"]*r2d), "%.4f" % (filtpt["the"]*r2d), "%.4f" % (filtpt["psi"]*r2d), "0" ]
+        line = [ "%.5f" % filtpt["timestamp"], "%.10f" % filtpt["lat_rad"], "%.10f" % filtpt["lon_rad"], "%.4f" % filtpt["alt_m"], "%.4f" % filtpt["vn_mps"], "%.4f" % filtpt["ve_mps"], "%.4f" % filtpt["vd_mps"], "%.4f" % (filtpt["phi_rad"]*r2d), "%.4f" % (filtpt["the_rad"]*r2d), "%.4f" % (filtpt["psi_rad"]*r2d), "0" ]
         f.write(",".join(line) + "\n")
 
     return result
