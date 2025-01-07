@@ -159,13 +159,13 @@ def load(mat_filename):
                 "timestamp": float(t[k]),
                 #"status": int(status),
                 "unix_sec": float(t[k]),
-                "lat_deg": float(lat[k]),
-                "lon_deg": float(lon[k]),
-                "alt_m": float(alt[k]),
+                "latitude_deg": float(lat[k]),
+                "longitude_deg": float(lon[k]),
+                "altitude_m": float(alt[k]),
                 "vn_mps": float(vn[k]),
                 "ve_mps": float(ve[k]),
                 "vd_mps": float(vd[k]),
-                "sats": 8     # force a reasonable value (not logged)
+                "num_sats": 8     # force a reasonable value (not logged)
             }
             result["gps"].append(gps_pt)
 
@@ -179,15 +179,15 @@ def load(mat_filename):
 
         nav = {
             "timestamp": float(t[k]),
-            "lat_rad": float(flight_data.navlat[k]),
-            "lon_rad": float(flight_data.navlon[k]),
-            "alt_m": float(flight_data.navalt[k]),
+            "latitude_deg": float(flight_data.navlat[k])*r2d,
+            "longitude_deg": float(flight_data.navlon[k])*r2d,
+            "altitude_m": float(flight_data.navalt[k]),
             "vn_mps": float(flight_data.navvn[k]),
             "ve_mps": float(flight_data.navve[k]),
             "vd_mps": float(flight_data.navvd[k]),
-            "phi_rad": float(flight_data.phi[k]),
-            "the_rad": float(flight_data.theta[k]),
-            "psi_rad": float(flight_data.psi[k]),
+            "phi_deg": float(flight_data.phi[k])*r2d,
+            "theta_deg": float(flight_data.theta[k])*r2d,
+            "psi_deg": float(flight_data.psi[k])*r2d,
             "p_bias": float(flight_data.p_bias[k]),
             "q_bias": float(flight_data.q_bias[k]),
             "r_bias": float(flight_data.r_bias[k]),
