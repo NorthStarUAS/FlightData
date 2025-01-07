@@ -4,12 +4,14 @@
 
 FLAG_UNBIASED_IMU = False             # Choose if accel/gyro should be bias-free.
 
-import math
+from math import pi
 import os, sys
 join = os.path.join
 import numpy as np
 from scipy import io as sio
 
+d2r = pi / 180.0
+r2d = 180.0 / pi
 mps2kt = 1.94384
 
 class dict2struct(): pass
@@ -211,14 +213,13 @@ def load(mat_filename):
     filename = os.path.join(dir, "gps-0.txt")
     f = open(filename, "w")
     for gpspt in result["gps"]:
-        line = [ "%.5f" % gpspt["timestamp"], "%.10f" % gpspt["lat_deg"], "%.10f" % gpspt["lon_deg"], "%.4f" % gpspt["alt_m"], "%.4f" % gpspt["vn_mps"], "%.4f" % gpspt["ve_mps"], "%.4f" % gpspt["vd_mps"], "%.4f" % gpspt["timestamp"], "8", "0" ]
+        line = [ "%.5f" % gpspt["timestamp"], "%.10f" % gpspt["latitude_deg"], "%.10f" % gpspt["longitude_deg"], "%.4f" % gpspt["altitude_m"], "%.4f" % gpspt["vn_mps"], "%.4f" % gpspt["ve_mps"], "%.4f" % gpspt["vd_mps"], "%.4f" % gpspt["timestamp"], "8", "0" ]
         f.write(",".join(line) + "\n")
 
     filename = os.path.join(dir, "nav-0.txt")
     f = open(filename, "w")
-    r2d = 180.0 / math.pi
     for filtpt in result["nav"]:
-        line = [ "%.5f" % filtpt["timestamp"], "%.10f" % filtpt["lat_rad"], "%.10f" % filtpt["lon_rad"], "%.4f" % filtpt["alt_m"], "%.4f" % filtpt["vn_mps"], "%.4f" % filtpt["ve_mps"], "%.4f" % filtpt["vd_mps"], "%.4f" % (filtpt["phi_rad"]*r2d), "%.4f" % (filtpt["the_rad"]*r2d), "%.4f" % (filtpt["psi_rad"]*r2d), "0" ]
+        line = [ "%.5f" % filtpt["timestamp"], "%.10f" % filtpt["latitude_deg"], "%.10f" % filtpt["longitude_deg"], "%.4f" % filtpt["altitude_m"], "%.4f" % filtpt["vn_mps"], "%.4f" % filtpt["ve_mps"], "%.4f" % filtpt["vd_mps"], "%.4f" % filtpt["phi_deg"], "%.4f" % filtpt["theta_deg"], "%.4f" % filtpt["psi_deg"], "0" ]
         f.write(",".join(line) + "\n")
 
     return result
