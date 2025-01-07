@@ -95,6 +95,9 @@ def load(pkl_file):
                 "vn_mps": vel[0][i],
                 "ve_mps": vel[1][i],
                 "vd_mps": vel[2][i],
+                "phi_rad": euler[0][i],
+                "the_rad": euler[1][i],
+                "psi_rad": euler[2][i],
                 "roll_deg": euler[0][i] * r2d,
                 "pitch_deg": euler[1][i] * r2d,
                 "yaw_deg": euler[2][i] * r2d,
@@ -128,7 +131,12 @@ def load(pkl_file):
             effectors = {
                 "timestamp": time_s[i],
                 "millis": time_s[i] * 1000,
-                "channel": [ power[i], ail[i], ele[i], -rud[i], flaps[i], 0, 0 ]
+                # "channel": [ power[i], ail[i], ele[i], -rud[i], flaps[i], 0, 0 ]
+                "power": power[i],
+                "aileron": ail[i],
+                "elevator": ele[i],
+                "rudder": -rud[i],
+                "flaps": flaps[i]
             }
             result["effectors"].append(effectors)
 
