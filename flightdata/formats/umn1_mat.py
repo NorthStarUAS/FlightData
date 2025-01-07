@@ -173,8 +173,8 @@ def load(mat_filename):
 
         air_pt = {
             "timestamp": float(t[k]),
-            "airspeed": float(flight_data.ias[k]*mps2kt),
-            "altitude": float(flight_data.h[k]),
+            "airspeed_mps": float(flight_data.ias[k]),
+            "altitude_m": float(flight_data.h[k]),
             "alt_true": float(flight_data.navalt[k])
         }
         result["airdata"].append(air_pt)
