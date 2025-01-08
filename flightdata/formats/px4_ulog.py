@@ -43,10 +43,10 @@ def load(ulog_file):
     result = {}
     result["imu"] = []
     result["gps"] = []
-    result["air"] = []
-    result["filter"] = []
-    #result["pilot"] = []
-    result["act"] = []
+    result["airdata"] = []
+    result["nav"] = []
+    #result["inceptors"] = []
+    result["effectors"] = []
     result["ap"] = []
 
     nav = {}
@@ -63,7 +63,7 @@ def load(ulog_file):
                 "vehicle_gps_position",
                 "vehicle_magnetometer",
                 "wind_estimate"]
-    
+
     ulog = ULog(ulog_file, messages)
     data = ulog.data_list
     temp_interp = None
@@ -116,14 +116,14 @@ def load(ulog_file):
             else:
                 temp = float(temp_interp(t))
             imu = {
-                "time": t / 1e6,
-                "p": d.data["gyro_rad[0]"][i],
-                "q": d.data["gyro_rad[1]"][i],
-                "r": d.data["gyro_rad[2]"][i],
-                "ax": d.data["accelerometer_m_s2[0]"][i],
-                "ay": d.data["accelerometer_m_s2[1]"][i],
-                "az": d.data["accelerometer_m_s2[2]"][i],
-                "temp": temp
+                "timestamp": t / 1e6,
+                "p_rps": d.data["gyro_rad[0]"][i],
+                "q_rps": d.data["gyro_rad[1]"][i],
+                "r_rps": d.data["gyro_rad[2]"][i],
+                "ax_mps2": d.data["accelerometer_m_s2[0]"][i],
+                "ay_mps2": d.data["accelerometer_m_s2[1]"][i],
+                "az_mps2": d.data["accelerometer_m_s2[2]"][i],
+                "temp_C": temp
             }
             if hx_interp is not None:
                 imu["hx"] = float(hx_interp(t))
@@ -133,24 +133,24 @@ def load(ulog_file):
                 imu["hx"] = d.data["magnetometer_ga[0]"][i]
                 imu["hy"] = d.data["magnetometer_ga[1]"][i]
                 imu["hz"] = d.data["magnetometer_ga[2]"][i]
-                
+
             result["imu"].append(imu)
 
     d = get_section(data, "vehicle_gps_position", 0)
     if d is not None:
         for i in range(len(d.data["timestamp"])):
             gps = {
-                "time": d.data["timestamp"][i] / 1e6,
+                "timestamp": d.data["timestamp"][i] / 1e6,
                 "unix_sec": d.data["time_utc_usec"][i] / 1e6,
-                "lat": d.data["lat"][i] / 1e7,
-                "lon": d.data["lon"][i] / 1e7,
-                "alt": d.data["alt"][i] / 1e3,
-                "vn": d.data["vel_n_m_s"][i],
-                "ve": d.data["vel_e_m_s"][i],
-                "vd": d.data["vel_d_m_s"][i],
-                "sats": d.data["satellites_used"][i]
+                "latitude_deg": d.data["lat"][i] / 1e7,
+                "longitude_deg": d.data["lon"][i] / 1e7,
+                "altitude_m": d.data["alt"][i] / 1e3,
+                "vn_mps": d.data["vel_n_m_s"][i],
+                "ve_mps": d.data["vel_e_m_s"][i],
+                "vd_mps": d.data["vel_d_m_s"][i],
+                "num_sats": d.data["satellites_used"][i]
             }
-            if gps["sats"] >= 5:
+            if gps["num_sats"] >= 5:
                 result["gps"].append(gps)
 
     d = get_section(data, "airspeed", 0)
@@ -159,7 +159,7 @@ def load(ulog_file):
         for i in range(len(d.data["timestamp"])):
             air = [
                 d.data["timestamp"][i],
-                d.data["indicated_airspeed_m_s"][i] * mps2kt
+                d.data["indicated_airspeed_m_s"][i]
             ]
             airspeed.append(air)
         airspeed = np.array(airspeed)
@@ -199,9 +199,9 @@ def load(ulog_file):
         for i in range(len(d.data["timestamp"])):
             t = d.data["timestamp"][i]
             if asi_interp is not None:
-                asi = float(asi_interp(t))
+                asi_mps = float(asi_interp(t))
             else:
-                asi = 0
+                asi_mps = 0
             if wind_deg_interp is not None:
                 wind_deg = float(wind_deg_interp(t))
             else:
@@ -210,12 +210,12 @@ def load(ulog_file):
                 wind_kt = float(wind_kt_interp(t))
             else:
                 wind_kt = 0
-            air = {
-                "time": t / 1e6,
+            airdata = {
+                "timestamp": t / 1e6,
                 "static_press": d.data["baro_pressure_pa"][i],
-                "diff_press": 0.0, 
+                "diff_press": 0.0,
                 "temp": d.data["baro_temp_celcius"][i],
-                "airspeed": asi,
+                "airspeed_mps": asi_mps,
                 "alt_press": d.data["baro_alt_meter"][i],
                 "alt_true": 0,
                 "tecs_error_total": 0,
@@ -224,25 +224,25 @@ def load(ulog_file):
                 "wind_speed": wind_kt,
                 "pitot_scale": 1
             }
-            result["air"].append(air)
+            result["airdata"].append(airdata)
     else:
         d = get_section(data, "airspeed", 0)
         if d is not None:
             airspeed = []
             for i in range(len(d.data["timestamp"])):
                 t = d.data["timestamp"][i]
-                air = {
-                    "time": t / 1e6,
-                    "airspeed": d.data["indicated_airspeed_m_s"][i] * mps2kt,
+                airdata = {
+                    "timestamp": t / 1e6,
+                    "airspeed_mps": d.data["indicated_airspeed_m_s"][i],
                     "pitot_scale": 1
                 }
                 if wind_deg_interp is not None:
-                    air["wind_dir"] = float(wind_deg_interp(t))
-                    air["wind_speed"] = float(wind_kt_interp(t))
-                result["air"].append(air)
+                    airdata["wind_dir"] = float(wind_deg_interp(t))
+                    airdata["wind_speed"] = float(wind_kt_interp(t))
+                result["airdata"].append(airdata)
 
     d = get_section(data, "vehicle_local_position", 0)
-    
+
     d = get_section(data, "vehicle_global_position", 0)
     if d is not None:
         poses = []
@@ -295,16 +295,16 @@ def load(ulog_file):
             (phi, the, psi) = px4_quat2euler(q)
             t = d.data["timestamp"][i]
             nav = {
-                "time": t / 1e6,
-                "lat": float(lat_interp(t))*d2r,
-                "lon": float(lon_interp(t))*d2r,
-                "alt": float(alt_interp(t)),
-                "vn": float(vn_interp(t)),
-                "ve": float(ve_interp(t)),
-                "vd": float(vd_interp(t)),
-                "phi": phi,
-                "the": the,
-                "psi": psi,
+                "timestamp": t / 1e6,
+                "latitude_deg": float(lat_interp(t)),
+                "longitude_deg": float(lon_interp(t)),
+                "altitude_m": float(alt_interp(t)),
+                "vn_mps": float(vn_interp(t)),
+                "ve_mps": float(ve_interp(t)),
+                "vd_mps": float(vd_interp(t)),
+                "phi_deg": phi*r2d,
+                "theta_deg": the*r2d,
+                "psi_deg": psi*r2d,
                 "psix": math.cos(psi),
                 "psiy": math.sin(psi),
                 "p_bias": 0,
@@ -314,14 +314,14 @@ def load(ulog_file):
                 "ay_bias": 0,
                 "az_bias": 0
             }
-            result["filter"].append(nav)
+            result["nav"].append(nav)
 
     d = get_section(data, "vehicle_attitude_setpoint", 0)
     if d is not None:
         for i in range(len(d.data["timestamp"])):
             t = d.data["timestamp"][i]
             ap = {
-                "time": t / 1e6,
+                "timestamp": t / 1e6,
                 "hdg": d.data["yaw_body"][i],
                 "roll": d.data["roll_body"][i],
                 "pitch": d.data["pitch_body"][i],
@@ -335,7 +335,7 @@ def load(ulog_file):
         for i in range(len(d.data["timestamp"])):
             t = d.data["timestamp"][i]
             act = {
-                "time": t / 1e6,
+                "timestamp": t / 1e6,
                 "aileron": (d.data["output[0]"][i] - 1500) / 500,
                 "elevator": (d.data["output[1]"][i] - 1500) / 500,
                 "throttle": (d.data["output[2]"][i] - 1000) / 1000,
@@ -349,6 +349,6 @@ def load(ulog_file):
                 "output[5]": d.data["output[5]"][i],
                 "output[6]": d.data["output[6]"][i],
             }
-            result["act"].append(act)
+            result["effectors"].append(act)
 
     return result

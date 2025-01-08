@@ -324,17 +324,18 @@ def save_filter_result(filename, nav):
         writer = csv.DictWriter( csvfile, fieldnames=keys )
         writer.writeheader()
         for navpt in nav:
+            # print("navpt:", navpt)
             row = dict()
-            row['timestamp'] = '%.4f' % navpt['time']
-            row['latitude_deg'] = '%.10f' % (navpt['lat']*180.0/math.pi)
-            row['longitude_deg'] = '%.10f' % (navpt['lon']*180.0/math.pi)
-            row['altitude_m'] = '%.2f' % navpt['alt']
-            row['vn_ms'] = '%.4f' % navpt['vn']
-            row['ve_ms'] = '%.4f' % navpt['ve']
-            row['vd_ms'] = '%.4f' % navpt['vd']
-            row['roll_deg'] = '%.2f' % (navpt['phi']*180.0/math.pi)
-            row['pitch_deg'] = '%.2f' % (navpt['the']*180.0/math.pi)
-            row['heading_deg'] = '%.2f' % (navpt['psi']*180.0/math.pi)
+            row['timestamp'] = '%.4f' % navpt['time_sec']
+            row['latitude_deg'] = '%.10f' % navpt['latitude_deg']
+            row['longitude_deg'] = '%.10f' % navpt['longitude_deg']
+            row['altitude_m'] = '%.2f' % navpt['altitude_m']
+            row['vn_ms'] = '%.4f' % navpt['vn_mps']
+            row['ve_ms'] = '%.4f' % navpt['ve_mps']
+            row['vd_ms'] = '%.4f' % navpt['vd_mps']
+            row['roll_deg'] = '%.2f' % navpt['phi_deg']
+            row['pitch_deg'] = '%.2f' % navpt['theta_deg']
+            row['heading_deg'] = '%.2f' % navpt['psi_deg']
             row['p_bias'] = '%.4f' % navpt['gbx']
             row['q_bias'] = '%.4f' % navpt['gby']
             row['r_bias'] = '%.4f' % navpt['gbz']
