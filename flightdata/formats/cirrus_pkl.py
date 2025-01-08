@@ -181,4 +181,56 @@ def load(pkl_file):
             #     health["main_mah"] = float(row["extern_current_mah"])
             # result["health"].append(health)
 
+    # Ack, throwing CHris under the bus here, his interpolation is bunk, (but he
+    # only had to add that to work around flaws in the data that I was unable to
+    # fix.)  Let's try to find those bad sections and just delete them.  This
+    # leaves gaps, but I think that's preferable to wildly wrong data.
+
+    # find/filter not-useful interpolated sections
+    from scipy.ndimage import gaussian_filter1d
+    from matplotlib import pyplot as plt
+    accel = data["aB_B_mps2"]
+    ax = accel[0]
+    ay = accel[1]
+    az = accel[2]
+    total_accel = np.sqrt( ax*ax + ay*ay + az*az )
+
+    # cutoff_freq = 0.05
+    # b, a = signal.butter(4, cutoff_freq, analog=False)
+    # print(b,a)
+    # filt = signal.filtfilt(b, a, total_accel)
+    filt = gaussian_filter1d(total_accel, 2)
+    print("total_accel shape:", total_accel.shape)
+    print("filt shape:", filt.shape)
+    print("filt:", filt)
+    diff = total_accel-filt
+    # diff = diff[np.abs(diff)<0.2]
+    # plt.figure()
+    # plt.plot(total_accel, label="total_accels")
+    print("finding segments...")
+    segments = []
+    thresh = 0.2
+    start = 0
+    while start < len(diff):
+        end = start
+        while end < len(diff) and abs(diff[end]) < thresh:
+            end += 1
+        if end - start > 25:
+            # 0.5 sec
+            print("adding segment:", [start-5, end+5])
+            segments.append([start-5, end+5])
+            # plt.axvspan(start-5, end+5, alpha=0.5, color='red')
+        start = end + 1
+    # plt.legend()
+    # plt.show()
+
+    # now delete those segments!
+    for segment in reversed(segments):
+        del result["imu"][segment[0]:segment[1]]
+        del result["gps"][segment[0]:segment[1]]
+        del result["airdata"][segment[0]:segment[1]]
+        del result["nav"][segment[0]:segment[1]]
+        del result["inceptors"][segment[0]:segment[1]]
+        del result["effectors"][segment[0]:segment[1]]
+
     return result
