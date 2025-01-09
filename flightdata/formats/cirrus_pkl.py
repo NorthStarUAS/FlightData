@@ -181,10 +181,12 @@ def load(pkl_file):
             #     health["main_mah"] = float(row["extern_current_mah"])
             # result["health"].append(health)
 
-    # Ack, throwing CHris under the bus here, his interpolation is bunk, (but he
+    # Ack, throwing Chris under the bus here, his interpolation is bunk, (but he
     # only had to add that to work around flaws in the data that I was unable to
-    # fix.)  Let's try to find those bad sections and just delete them.  This
-    # leaves gaps, but I think that's preferable to wildly wrong data.
+    # fix and he never used those interpolated sections so he didn't notice or
+    # care.)  Let's try to find those bad sections and just delete them.  This
+    # leaves gaps in the data which can harm attitude estimation, but I think
+    # that's preferable to wildly wrong data.
 
     # find/filter not-useful interpolated sections
     from scipy.ndimage import gaussian_filter1d
