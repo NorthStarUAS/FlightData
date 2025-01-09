@@ -52,7 +52,7 @@ def load(pkl_file):
             gps = {
                 "timestamp": time_s[i],
                 "millis": time_s[i] * 1000.0,
-                "unix_usec": time_s[i] * 1000000.0,
+                "unix_sec": time_s[i],
                 "latitude_deg": lla[0][i],
                 "longitude_deg": lla[1][i],
                 "altitude_m": lla[2][i],  # MSL
